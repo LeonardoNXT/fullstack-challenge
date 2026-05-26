@@ -6,6 +6,7 @@ export type RoundId = Brand<string, "RoundId">;
 export type BetId = Brand<string, "BetId">;
 export type EventId = Brand<string, "EventId">;
 export type CorrelationId = Brand<string, "CorrelationId">;
+export type OperationId = Brand<string, "OperationId">;
 
 export function asUUID(value: string): UUID {
   if (!isUUID(value)) {
@@ -27,4 +28,12 @@ export function asPlayerId(value: string): PlayerId {
   }
 
   return value as PlayerId;
+}
+
+export function asOperationId(value: string): OperationId {
+  if (value.trim().length === 0) {
+    throw new Error("INVALID_OPERATION_ID");
+  }
+
+  return value as OperationId;
 }

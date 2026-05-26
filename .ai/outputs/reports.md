@@ -74,3 +74,29 @@ Validation:
 Next recommended implementation step:
 
 - Build the Wallet domain and ledger using `@crash/contracts` money primitives.
+
+## 2026-05-25 - Wallet Domain And Ledger
+
+Implemented the Wallet domain core.
+
+Added:
+
+- `services/wallets/src/domain/entities/wallet.ts` with wallet balance, credit, debit, rehydrate, snapshot, and ledger behavior.
+- `services/wallets/src/domain/errors/wallet-domain.error.ts` with stable domain error codes.
+- `services/wallets/tests/unit/wallet.test.ts` covering creation, credit, debit, insufficient balance, duplicate operations, invalid amounts, and snapshot safety.
+- `OperationId` primitive in `@crash/contracts`.
+- Workspace dependency from Wallets to `@crash/contracts`.
+- Minimal `frontend/package.json` so the root workspace declaration is structurally valid before the real frontend scaffold.
+
+Validation:
+
+- `bun test services/wallets/tests/unit packages/contracts/tests` from the repo root passed 18 tests.
+
+Environment note:
+
+- `bun install` could not complete in this machine because package downloads fail with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`.
+- Running `bun test tests/unit` from inside `services/wallets` also hit a Windows sandbox `EPERM` while reading the shared package source. Running the tests from the repo root works.
+
+Next recommended implementation step:
+
+- Add Wallet application use cases and an in-memory repository boundary before introducing Prisma persistence.

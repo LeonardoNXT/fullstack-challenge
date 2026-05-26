@@ -18,7 +18,8 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true,
     "paths": {
-      "@/*": ["./src/*"]
+      "@/*": ["./src/*"],
+      "@crash/contracts": ["../../packages/contracts/src/index.ts"]
     }
   },
   "include": ["src/**/*"],
