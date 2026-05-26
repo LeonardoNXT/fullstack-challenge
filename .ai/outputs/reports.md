@@ -100,3 +100,23 @@ Environment note:
 Next recommended implementation step:
 
 - Add Wallet application use cases and an in-memory repository boundary before introducing Prisma persistence.
+
+## 2026-05-26 - Wallet Application Use Cases
+
+Implemented the Wallet application layer.
+
+Added:
+
+- Wallet repository port in `services/wallets/src/application/ports`.
+- Use cases for creating, getting, crediting, and debiting wallets.
+- Application error for missing wallet.
+- In-memory wallet repository in `services/wallets/src/infrastructure/repositories`.
+- Unit tests for idempotent creation, wallet lookup, credit/debit persistence, duplicate operation handling, insufficient balance, and missing-wallet errors.
+
+Validation:
+
+- `bun test services/wallets/tests/unit packages/contracts/tests` from the repo root passed 26 tests.
+
+Next recommended implementation step:
+
+- Introduce Wallet REST endpoints wired to the application use cases with an in-memory repository first, then replace the repository with Prisma persistence.
