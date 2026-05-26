@@ -301,3 +301,35 @@ Important limitation:
 Next recommended implementation step:
 
 - Add RabbitMQ wallet command/event integration so Games can request bet debits and cashout credits, and Wallets can publish accepted/rejected/credited outcomes idempotently.
+
+## 2026-05-26 - Wallet Command/Event Application Flow
+
+Implemented the application-level financial messaging flow between Games and Wallets.
+
+Added:
+
+- Event/correlation id helpers in `@crash/contracts`.
+- Games `WalletCommandPublisher` port and in-memory test publisher.
+- Games `WalletCommandFactory` for `wallet.bet.debit.requested` and `wallet.cashout.credit.requested`.
+- Games message id generator adapter.
+- `PlaceBetUseCase` now publishes a debit command after creating a pending bet when a publisher is configured.
+- `CashOutUseCase` now publishes a cashout credit command after server-side cashout when a publisher is configured.
+- Wallets `HandleWalletCommandUseCase` to process bet debit, cashout credit, and refund commands.
+- Wallets `WalletEventFactory` for debited/credited/refunded/rejected outcomes.
+- Wallet event publisher port and in-memory test publisher.
+- Wallet command processing uses deterministic operation ids derived from `betId`, `cashout:${betId}`, and `refund:${betId}` so duplicate messages do not double debit or credit.
+- Unit tests for Games command publication and Wallet command handling/idempotency.
+
+Validation:
+
+- `bun test packages\auth\tests packages\contracts\tests services\wallets\tests\unit services\games\tests\unit` passed 73 tests.
+- `docker compose config` succeeded. Docker still prints the local `C:\Users\Leona\.docker\config.json` permission warning, but the command exits successfully.
+
+Important limitation:
+
+- This slice wires the message contracts and application behavior, but the concrete RabbitMQ adapter is still pending.
+- Dependency installation is still blocked locally by `UNABLE_TO_VERIFY_LEAF_SIGNATURE`, so adapters that require new broker packages should be added once package resolution is fixed or handled with the existing runtime stack.
+
+Next recommended implementation step:
+
+- Add concrete RabbitMQ adapters/consumers for the existing wallet command/event ports, then connect wallet result events back into Games acceptance/rejection/cashout settlement paths.

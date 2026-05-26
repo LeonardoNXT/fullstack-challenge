@@ -14,16 +14,21 @@ import {
   VerifyRoundUseCase,
   type Clock,
   type IdGenerator,
+  type MessageIdGenerator,
   type RealtimeEventBus,
   type RoundRepository,
   type SeedGenerator,
+  type WalletCommandPublisher,
+  WalletCommandFactory,
 } from "./application";
 import { ProvablyFairService } from "./domain";
 import {
   CryptoSeedGenerator,
+  InMemoryWalletCommandPublisher,
   InMemoryRoundRepository,
   SystemClock,
   UuidIdGenerator,
+  UuidMessageIdGenerator,
 } from "./infrastructure";
 import { GamesRealtimeGateway } from "./presentation/gateways/games-realtime.gateway";
 
@@ -31,16 +36,21 @@ export const ROUND_REPOSITORY = Symbol("ROUND_REPOSITORY");
 export const CLOCK = Symbol("CLOCK");
 export const ID_GENERATOR = Symbol("ID_GENERATOR");
 export const SEED_GENERATOR = Symbol("SEED_GENERATOR");
+export const MESSAGE_ID_GENERATOR = Symbol("MESSAGE_ID_GENERATOR");
 export const KEYCLOAK_JWT_VERIFIER = Symbol("KEYCLOAK_JWT_VERIFIER");
 export const REALTIME_EVENT_BUS = Symbol("REALTIME_EVENT_BUS");
+export const WALLET_COMMAND_PUBLISHER = Symbol("WALLET_COMMAND_PUBLISHER");
 
 export const gameProviders = [
   { provide: ROUND_REPOSITORY, useClass: InMemoryRoundRepository },
   { provide: CLOCK, useClass: SystemClock },
   { provide: ID_GENERATOR, useClass: UuidIdGenerator },
   { provide: SEED_GENERATOR, useClass: CryptoSeedGenerator },
+  { provide: MESSAGE_ID_GENERATOR, useClass: UuidMessageIdGenerator },
+  { provide: WALLET_COMMAND_PUBLISHER, useClass: InMemoryWalletCommandPublisher },
   { provide: ProvablyFairService, useClass: ProvablyFairService },
   { provide: RealtimeEventFactory, useClass: RealtimeEventFactory },
+  { provide: WalletCommandFactory, useClass: WalletCommandFactory },
   { provide: GamesRealtimeGateway, useClass: GamesRealtimeGateway },
   { provide: REALTIME_EVENT_BUS, useExisting: GamesRealtimeGateway },
   {
@@ -78,14 +88,50 @@ export const gameProviders = [
       roundRepository: RoundRepository,
       idGenerator: IdGenerator,
       clock: Clock,
-    ): PlaceBetUseCase => new PlaceBetUseCase(roundRepository, idGenerator, clock),
-    inject: [ROUND_REPOSITORY, ID_GENERATOR, CLOCK],
+      walletCommandPublisher: WalletCommandPublisher,
+      walletCommandFactory: WalletCommandFactory,
+      messageIdGenerator: MessageIdGenerator,
+    ): PlaceBetUseCase =>
+      new PlaceBetUseCase(
+        roundRepository,
+        idGenerator,
+        clock,
+        walletCommandPublisher,
+        walletCommandFactory,
+        messageIdGenerator,
+      ),
+    inject: [
+      ROUND_REPOSITORY,
+      ID_GENERATOR,
+      CLOCK,
+      WALLET_COMMAND_PUBLISHER,
+      WalletCommandFactory,
+      MESSAGE_ID_GENERATOR,
+    ],
   },
   {
     provide: CashOutUseCase,
-    useFactory: (roundRepository: RoundRepository, clock: Clock): CashOutUseCase =>
-      new CashOutUseCase(roundRepository, clock),
-    inject: [ROUND_REPOSITORY, CLOCK],
+    useFactory: (
+      roundRepository: RoundRepository,
+      clock: Clock,
+      walletCommandPublisher: WalletCommandPublisher,
+      walletCommandFactory: WalletCommandFactory,
+      messageIdGenerator: MessageIdGenerator,
+    ): CashOutUseCase =>
+      new CashOutUseCase(
+        roundRepository,
+        clock,
+        walletCommandPublisher,
+        walletCommandFactory,
+        messageIdGenerator,
+      ),
+    inject: [
+      ROUND_REPOSITORY,
+      CLOCK,
+      WALLET_COMMAND_PUBLISHER,
+      WalletCommandFactory,
+      MESSAGE_ID_GENERATOR,
+    ],
   },
   {
     provide: CrashRoundUseCase,

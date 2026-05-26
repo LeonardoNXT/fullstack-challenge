@@ -3,7 +3,10 @@ import type { BetSnapshot } from "../../domain";
 import { GameApplicationError } from "../errors/game-application.error";
 import type { Clock } from "../ports/clock";
 import type { IdGenerator } from "../ports/id-generator";
+import type { MessageIdGenerator } from "../ports/message-id-generator";
 import type { RoundRepository } from "../ports/round.repository";
+import type { WalletCommandPublisher } from "../ports/wallet-command-publisher";
+import type { WalletCommandFactory } from "../services/wallet-command-factory";
 
 export interface PlaceBetInput {
   readonly playerId: PlayerId;
@@ -17,6 +20,9 @@ export class PlaceBetUseCase {
     private readonly roundRepository: RoundRepository,
     private readonly idGenerator: IdGenerator,
     private readonly clock: Clock,
+    private readonly walletCommandPublisher?: WalletCommandPublisher,
+    private readonly walletCommandFactory?: WalletCommandFactory,
+    private readonly messageIdGenerator?: MessageIdGenerator,
   ) {}
 
   async execute(input: PlaceBetInput): Promise<BetSnapshot> {
@@ -34,7 +40,22 @@ export class PlaceBetUseCase {
       autoCashoutMultiplierBps: input.autoCashoutMultiplierBps,
     });
     await this.roundRepository.save(round);
+    const snapshot = bet.toSnapshot();
 
-    return bet.toSnapshot();
+    if (
+      this.walletCommandPublisher !== undefined &&
+      this.walletCommandFactory !== undefined &&
+      this.messageIdGenerator !== undefined
+    ) {
+      await this.walletCommandPublisher.publish(
+        this.walletCommandFactory.betDebitRequested(snapshot, {
+          eventId: this.messageIdGenerator.nextEventId(),
+          correlationId: this.messageIdGenerator.nextCorrelationId(),
+          occurredAt: this.clock.now(),
+        }),
+      );
+    }
+
+    return snapshot;
   }
 }

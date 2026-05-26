@@ -7,17 +7,39 @@ import {
   CreditWalletUseCase,
   DebitWalletUseCase,
   GetWalletUseCase,
+  HandleWalletCommandUseCase,
+  WalletEventFactory,
+  type MessageIdGenerator,
+  type WalletEventPublisher,
   type WalletRepository,
 } from "./application";
-import { InMemoryWalletRepository } from "./infrastructure";
+import {
+  InMemoryWalletEventPublisher,
+  InMemoryWalletRepository,
+  UuidMessageIdGenerator,
+} from "./infrastructure";
 
 export const WALLET_REPOSITORY = Symbol("WALLET_REPOSITORY");
 export const KEYCLOAK_JWT_VERIFIER = Symbol("KEYCLOAK_JWT_VERIFIER");
+export const MESSAGE_ID_GENERATOR = Symbol("MESSAGE_ID_GENERATOR");
+export const WALLET_EVENT_PUBLISHER = Symbol("WALLET_EVENT_PUBLISHER");
 
 export const walletProviders = [
   {
     provide: WALLET_REPOSITORY,
     useClass: InMemoryWalletRepository,
+  },
+  {
+    provide: MESSAGE_ID_GENERATOR,
+    useClass: UuidMessageIdGenerator,
+  },
+  {
+    provide: WALLET_EVENT_PUBLISHER,
+    useClass: InMemoryWalletEventPublisher,
+  },
+  {
+    provide: WalletEventFactory,
+    useClass: WalletEventFactory,
   },
   {
     provide: KEYCLOAK_JWT_VERIFIER,
@@ -47,6 +69,30 @@ export const walletProviders = [
     useFactory: (walletRepository: WalletRepository): DebitWalletUseCase =>
       new DebitWalletUseCase(walletRepository),
     inject: [WALLET_REPOSITORY],
+  },
+  {
+    provide: HandleWalletCommandUseCase,
+    useFactory: (
+      debitWalletUseCase: DebitWalletUseCase,
+      creditWalletUseCase: CreditWalletUseCase,
+      eventFactory: WalletEventFactory,
+      messageIdGenerator: MessageIdGenerator,
+      walletEventPublisher: WalletEventPublisher,
+    ): HandleWalletCommandUseCase =>
+      new HandleWalletCommandUseCase(
+        debitWalletUseCase,
+        creditWalletUseCase,
+        eventFactory,
+        messageIdGenerator,
+        walletEventPublisher,
+      ),
+    inject: [
+      DebitWalletUseCase,
+      CreditWalletUseCase,
+      WalletEventFactory,
+      MESSAGE_ID_GENERATOR,
+      WALLET_EVENT_PUBLISHER,
+    ],
   },
 ];
 

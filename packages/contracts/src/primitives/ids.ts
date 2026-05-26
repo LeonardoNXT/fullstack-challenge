@@ -45,3 +45,15 @@ export function asOperationId(value: string): OperationId {
 
   return value as OperationId;
 }
+
+export function asEventId(value: string): EventId {
+  return asUUID(value) as unknown as EventId;
+}
+
+export function asCorrelationId(value: string): CorrelationId {
+  if (value.trim().length === 0) {
+    throw new Error("INVALID_CORRELATION_ID");
+  }
+
+  return value as CorrelationId;
+}
