@@ -379,3 +379,24 @@ Validation:
 - `docker compose config` succeeded.
 - `docker compose build games wallets` succeeded and built both runtime images.
 - `bun test packages\auth\tests packages\contracts\tests services\wallets\tests\unit services\games\tests\unit` passed 76 tests.
+
+## 2026-05-26 - Docker Runtime Bootstrap Fixes
+
+Fixed the local `docker compose up` runtime path on Windows.
+
+Changed:
+
+- Remapped the project Postgres host port from `5432` to `5433` because another local container named `postgres` was already using host port `5432`.
+- Updated the Postgres 18 volume mount from `/var/lib/postgresql/data` to `/var/lib/postgresql` using a fresh `postgres18_data_v2` volume, matching the official Postgres 18 image layout.
+- Converted `docker/postgres/init-databases.sh` from Bash/CRLF-sensitive syntax to portable `/bin/sh` syntax so it runs inside the Alpine Postgres image.
+- Fixed Keycloak healthcheck to call the internal management health endpoint on port `9000`.
+- Replaced Games and Wallets healthchecks from `curl` to `bun fetch`, because the runtime Bun Alpine image does not ship with `curl`.
+
+Validation:
+
+- `docker compose up -d` succeeded.
+- All project containers became healthy: Postgres, RabbitMQ, Keycloak, Kong, Games, and Wallets.
+- `http://localhost:8000/games/health` returned `{"status":"ok","service":"games"}`.
+- `http://localhost:8000/wallets/health` returned `{"status":"ok","service":"wallets"}`.
+- Keycloak realm discovery returned HTTP `200`.
+- `bun test packages\auth\tests packages\contracts\tests services\wallets\tests\unit services\games\tests\unit` passed 76 tests.
