@@ -196,3 +196,25 @@ Validation:
 Next recommended implementation step:
 
 - Add Games application use cases and an in-memory round repository/engine boundary before wiring REST/WebSocket/RabbitMQ.
+
+## 2026-05-26 - Games Application Use Cases
+
+Implemented the first Games application layer.
+
+Added:
+
+- Round repository, clock, id generator, and seed generator ports.
+- In-memory round repository plus system/crypto/UUID adapters.
+- Use cases for opening a round, getting the current round, placing bets, accepting/rejecting wallet debit outcomes, starting a round, cashing out, crashing a round, and verifying provably fair data.
+- Public round/bet mapping for REST/WebSocket-facing views.
+- `serverSeed` storage in the round snapshot so past rounds can expose verification data.
+- `asRoundId` and `asBetId` helpers in `@crash/contracts`.
+- Unit tests covering current round retrieval, bet placement, wallet debit outcomes, start/cashout, crash settlement, verification, missing current round, and duplicate bet errors.
+
+Validation:
+
+- `bun test packages/auth/tests packages/contracts/tests services/wallets/tests/unit services/games/tests/unit` passed 56 tests.
+
+Next recommended implementation step:
+
+- Expose Games REST endpoints using the application use cases and in-memory repository, then add the Keycloak guard to authenticated game endpoints.

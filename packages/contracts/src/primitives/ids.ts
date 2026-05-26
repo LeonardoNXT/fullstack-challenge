@@ -30,6 +30,14 @@ export function asPlayerId(value: string): PlayerId {
   return value as PlayerId;
 }
 
+export function asRoundId(value: string): RoundId {
+  return asUUID(value) as unknown as RoundId;
+}
+
+export function asBetId(value: string): BetId {
+  return asUUID(value) as unknown as BetId;
+}
+
 export function asOperationId(value: string): OperationId {
   if (value.trim().length === 0) {
     throw new Error("INVALID_OPERATION_ID");

@@ -9,6 +9,7 @@ import { GameDomainError, Round } from "../../src/domain";
 function createRound(): Round {
   return Round.open({
     roundId: "round-1" as never,
+    serverSeed: "server-seed",
     serverSeedHash: "hash",
     clientSeed: "client",
     nonce: 1,

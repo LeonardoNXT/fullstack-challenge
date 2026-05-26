@@ -16,6 +16,7 @@ export const DEFAULT_GROWTH_BPS_PER_SECOND = 1000;
 export interface RoundSnapshot {
   readonly roundId: RoundId;
   readonly phase: RoundPhase;
+  readonly serverSeed: string;
   readonly serverSeedHash: string;
   readonly clientSeed: string;
   readonly nonce: number;
@@ -32,6 +33,7 @@ export class Round {
   private constructor(
     readonly roundId: RoundId,
     private phaseValue: RoundPhase,
+    readonly serverSeed: string,
     readonly serverSeedHash: string,
     readonly clientSeed: string,
     readonly nonce: number,
@@ -46,6 +48,7 @@ export class Round {
 
   static open(input: {
     readonly roundId: RoundId;
+    readonly serverSeed: string;
     readonly serverSeedHash: string;
     readonly clientSeed: string;
     readonly nonce: number;
@@ -57,6 +60,7 @@ export class Round {
     return new Round(
       input.roundId,
       "betting",
+      input.serverSeed,
       input.serverSeedHash,
       input.clientSeed,
       input.nonce,
@@ -74,6 +78,7 @@ export class Round {
     return new Round(
       snapshot.roundId,
       snapshot.phase,
+      snapshot.serverSeed,
       snapshot.serverSeedHash,
       snapshot.clientSeed,
       snapshot.nonce,
@@ -241,6 +246,7 @@ export class Round {
     return {
       roundId: this.roundId,
       phase: this.phaseValue,
+      serverSeed: this.serverSeed,
       serverSeedHash: this.serverSeedHash,
       clientSeed: this.clientSeed,
       nonce: this.nonce,
