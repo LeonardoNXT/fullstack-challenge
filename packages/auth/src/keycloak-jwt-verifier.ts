@@ -31,7 +31,11 @@ interface JwtHeader {
 }
 
 interface Jwks {
-  readonly keys: readonly JsonWebKey[];
+  readonly keys: readonly JwkSigningKey[];
+}
+
+interface JwkSigningKey extends JsonWebKey {
+  readonly kid?: string;
 }
 
 export class KeycloakJwtVerificationError extends Error {
@@ -66,8 +70,8 @@ export class KeycloakJwtVerifier {
     const isValid = await crypto.subtle.verify(
       "RSASSA-PKCS1-v1_5",
       cryptoKey,
-      signature,
-      signedData,
+      toArrayBuffer(signature),
+      toArrayBuffer(signedData),
     );
 
     if (!isValid) {
@@ -146,7 +150,7 @@ export class KeycloakJwtVerifier {
     return audiences.includes(this.config.clientId) || claims.azp === this.config.clientId;
   }
 
-  private async findSigningKey(kid: string | undefined): Promise<JsonWebKey> {
+  private async findSigningKey(kid: string | undefined): Promise<JwkSigningKey> {
     const jwks = await this.getJwks();
     const key = jwks.keys.find((candidate) => {
       if (candidate.kty !== "RSA" || candidate.use !== "sig") {
@@ -200,6 +204,13 @@ export function decodeBase64Url(value: string): Uint8Array {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
   const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
   return Uint8Array.from(Buffer.from(padded, "base64"));
+}
+
+function toArrayBuffer(value: Uint8Array): ArrayBuffer {
+  return value.buffer.slice(
+    value.byteOffset,
+    value.byteOffset + value.byteLength,
+  ) as ArrayBuffer;
 }
 
 export function encodeBase64Url(value: Uint8Array | string): string {

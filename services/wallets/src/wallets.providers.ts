@@ -14,10 +14,12 @@ import {
   type WalletRepository,
 } from "./application";
 import {
-  InMemoryWalletEventPublisher,
-  InMemoryWalletRepository,
+  RabbitmqWalletCommandConsumer,
+  RabbitmqWalletEventPublisher,
   UuidMessageIdGenerator,
 } from "./infrastructure";
+import { PrismaService } from "./infrastructure/prisma/prisma.service";
+import { PrismaWalletRepository } from "./infrastructure/repositories/prisma-wallet.repository";
 
 export const WALLET_REPOSITORY = Symbol("WALLET_REPOSITORY");
 export const KEYCLOAK_JWT_VERIFIER = Symbol("KEYCLOAK_JWT_VERIFIER");
@@ -25,9 +27,13 @@ export const MESSAGE_ID_GENERATOR = Symbol("MESSAGE_ID_GENERATOR");
 export const WALLET_EVENT_PUBLISHER = Symbol("WALLET_EVENT_PUBLISHER");
 
 export const walletProviders = [
+  PrismaService,
+  RabbitmqWalletCommandConsumer,
   {
     provide: WALLET_REPOSITORY,
-    useClass: InMemoryWalletRepository,
+    useFactory: (prisma: PrismaService): WalletRepository =>
+      new PrismaWalletRepository(prisma),
+    inject: [PrismaService],
   },
   {
     provide: MESSAGE_ID_GENERATOR,
@@ -35,7 +41,7 @@ export const walletProviders = [
   },
   {
     provide: WALLET_EVENT_PUBLISHER,
-    useClass: InMemoryWalletEventPublisher,
+    useClass: RabbitmqWalletEventPublisher,
   },
   {
     provide: WalletEventFactory,

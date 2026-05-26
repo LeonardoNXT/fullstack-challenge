@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/infrastructure/prisma/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Wallet {
+  playerId     String        @id @map("player_id")
+  balanceCents Int           @map("balance_cents")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  ledger       LedgerEntry[]
+
+  @@map("wallets")
+}
+
+model LedgerEntry {
+  operationId       String   @id @map("operation_id")
+  playerId          String   @map("player_id")
+  type              String
+  amountCents       Int      @map("amount_cents")
+  balanceAfterCents Int      @map("balance_after_cents")
+  occurredAt        DateTime @map("occurred_at")
+  reason            String
+  wallet            Wallet   @relation(fields: [playerId], references: [playerId], onDelete: Cascade)
+
+  @@index([playerId, occurredAt])
+  @@map("ledger_entries")
+}

@@ -46,6 +46,10 @@ export class RealtimeEventFactory {
     return { type: "bet:cashed-out", payload: bet };
   }
 
+  walletUpdated(playerId: BetSnapshot["playerId"]): RealtimeEvent {
+    return { type: "wallet:updated", payload: { playerId } };
+  }
+
   private roundTick(round: PublicRound): RoundTickEvent {
     return {
       type: "round:tick",

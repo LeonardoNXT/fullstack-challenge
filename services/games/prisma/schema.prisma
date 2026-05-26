@@ -1,0 +1,50 @@
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/infrastructure/prisma/generated"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Round {
+  roundId            String   @id @map("round_id")
+  phase              String
+  serverSeed         String   @map("server_seed")
+  serverSeedHash     String   @map("server_seed_hash")
+  clientSeed         String   @map("client_seed")
+  nonce              String
+  crashPointBps      Int      @map("crash_point_bps")
+  bettingOpenedAt    DateTime @map("betting_opened_at")
+  bettingClosesAt    DateTime @map("betting_closes_at")
+  startedAt          DateTime? @map("started_at")
+  crashedAt          DateTime? @map("crashed_at")
+  growthBpsPerSecond Int      @map("growth_bps_per_second")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+  bets               Bet[]
+
+  @@index([phase, bettingOpenedAt])
+  @@map("rounds")
+}
+
+model Bet {
+  betId                    String   @id @map("bet_id")
+  roundId                  String   @map("round_id")
+  playerId                 String   @map("player_id")
+  username                 String
+  amountCents              Int      @map("amount_cents")
+  status                   String
+  autoCashoutMultiplierBps Int?     @map("auto_cashout_multiplier_bps")
+  cashoutMultiplierBps     Int?     @map("cashout_multiplier_bps")
+  payoutCents              Int?     @map("payout_cents")
+  placedAt                 DateTime @map("placed_at")
+  settledAt                DateTime? @map("settled_at")
+  rejectionReason          String?  @map("rejection_reason")
+  round                    Round    @relation(fields: [roundId], references: [roundId], onDelete: Cascade)
+
+  @@unique([roundId, playerId])
+  @@index([playerId, placedAt])
+  @@index([roundId, status])
+  @@map("bets")
+}

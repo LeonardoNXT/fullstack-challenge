@@ -38,6 +38,12 @@ export class HandleWalletEventUseCase {
         type: "bet:accepted",
         payload: bet,
       });
+      await this.realtimeEventBus?.publish(
+        this.realtimeEventFactory?.walletUpdated(event.payload.playerId) ?? {
+          type: "wallet:updated",
+          payload: { playerId: event.payload.playerId },
+        },
+      );
 
       return { handled: true, duplicate: false, bet };
     }
@@ -53,11 +59,32 @@ export class HandleWalletEventUseCase {
         type: "bet:rejected",
         payload: bet,
       });
+      await this.realtimeEventBus?.publish(
+        this.realtimeEventFactory?.walletUpdated(event.payload.playerId) ?? {
+          type: "wallet:updated",
+          payload: { playerId: event.payload.playerId },
+        },
+      );
 
       return { handled: true, duplicate: false, bet };
     }
 
-    await this.processedWalletEventStore.record(event.eventId);
+    if (
+      event.type === WALLET_ROUTING_KEYS.cashoutCredited ||
+      event.type === WALLET_ROUTING_KEYS.cashoutCreditRejected ||
+      event.type === WALLET_ROUTING_KEYS.betRefunded
+    ) {
+      await this.processedWalletEventStore.record(event.eventId);
+      await this.realtimeEventBus?.publish(
+        this.realtimeEventFactory?.walletUpdated(event.payload.playerId) ?? {
+          type: "wallet:updated",
+          payload: { playerId: event.payload.playerId },
+        },
+      );
+
+      return { handled: true, duplicate: false };
+    }
+
     return { handled: false, duplicate: false };
   }
 }

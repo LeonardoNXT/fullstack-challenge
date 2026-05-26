@@ -9,7 +9,8 @@ export type RealtimeEvent =
   | BetPlacedEvent
   | BetAcceptedEvent
   | BetRejectedEvent
-  | BetCashedOutEvent;
+  | BetCashedOutEvent
+  | WalletUpdatedEvent;
 
 export interface RoundBettingOpenedEvent {
   readonly type: "round:betting-opened";
@@ -54,4 +55,11 @@ export interface BetRejectedEvent {
 export interface BetCashedOutEvent {
   readonly type: "bet:cashed-out";
   readonly payload: BetSnapshot;
+}
+
+export interface WalletUpdatedEvent {
+  readonly type: "wallet:updated";
+  readonly payload: {
+    readonly playerId: BetSnapshot["playerId"];
+  };
 }

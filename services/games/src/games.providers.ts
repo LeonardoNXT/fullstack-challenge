@@ -29,12 +29,14 @@ import { ProvablyFairService } from "./domain";
 import {
   CryptoSeedGenerator,
   InMemoryProcessedWalletEventStore,
-  InMemoryWalletCommandPublisher,
-  InMemoryRoundRepository,
+  RabbitmqWalletCommandPublisher,
+  RabbitmqWalletEventConsumer,
   SystemClock,
   UuidIdGenerator,
   UuidMessageIdGenerator,
 } from "./infrastructure";
+import { PrismaService } from "./infrastructure/prisma/prisma.service";
+import { PrismaRoundRepository } from "./infrastructure/repositories/prisma-round.repository";
 import { GamesRealtimeGateway } from "./presentation/gateways/games-realtime.gateway";
 
 export const ROUND_REPOSITORY = Symbol("ROUND_REPOSITORY");
@@ -48,7 +50,14 @@ export const REALTIME_EVENT_BUS = Symbol("REALTIME_EVENT_BUS");
 export const WALLET_COMMAND_PUBLISHER = Symbol("WALLET_COMMAND_PUBLISHER");
 
 export const gameProviders = [
-  { provide: ROUND_REPOSITORY, useClass: InMemoryRoundRepository },
+  PrismaService,
+  RabbitmqWalletEventConsumer,
+  {
+    provide: ROUND_REPOSITORY,
+    useFactory: (prisma: PrismaService): RoundRepository =>
+      new PrismaRoundRepository(prisma),
+    inject: [PrismaService],
+  },
   { provide: CLOCK, useClass: SystemClock },
   { provide: ID_GENERATOR, useClass: UuidIdGenerator },
   { provide: SEED_GENERATOR, useClass: CryptoSeedGenerator },
@@ -57,7 +66,7 @@ export const gameProviders = [
     provide: PROCESSED_WALLET_EVENT_STORE,
     useClass: InMemoryProcessedWalletEventStore,
   },
-  { provide: WALLET_COMMAND_PUBLISHER, useClass: InMemoryWalletCommandPublisher },
+  { provide: WALLET_COMMAND_PUBLISHER, useClass: RabbitmqWalletCommandPublisher },
   { provide: ProvablyFairService, useClass: ProvablyFairService },
   { provide: RealtimeEventFactory, useClass: RealtimeEventFactory },
   { provide: WalletCommandFactory, useClass: WalletCommandFactory },

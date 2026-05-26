@@ -122,7 +122,7 @@ describe("HandleWalletEventUseCase", () => {
     const duplicate = await handler.execute(event);
 
     expect(duplicate).toEqual({ handled: false, duplicate: true });
-    expect(realtimeEventBus.events).toHaveLength(1);
+    expect(realtimeEventBus.events).toHaveLength(2);
   });
 });
 
