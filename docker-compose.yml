@@ -99,8 +99,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4001:4001"
-    env_file:
-      - ./services/games/.env
+    environment:
+      PORT: 4001
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/games
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
     depends_on:
       postgres:
         condition: service_healthy
@@ -122,8 +124,10 @@ services:
       dockerfile: Dockerfile
     ports:
       - "4002:4002"
-    env_file:
-      - ./services/wallets/.env
+    environment:
+      PORT: 4002
+      DATABASE_URL: postgresql://admin:admin@postgres:5432/wallets
+      RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
     depends_on:
       postgres:
         condition: service_healthy

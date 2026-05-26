@@ -38,7 +38,7 @@ Wallets service:
 
 ## First Known Blocker
 
-`docker-compose.yml` references `services/games/.env` and `services/wallets/.env`, but only `.env.example` exists. `docker compose config` fails until this is fixed. Prefer a solution that keeps `bun run docker:up` manual-step-free.
+Original scaffold issue: `docker-compose.yml` referenced `services/games/.env` and `services/wallets/.env`, but only `.env.example` exists. The Docker path should not require copying env files manually; `.env.example` is the template for running services outside Docker.
 
 ## Success Criteria
 
