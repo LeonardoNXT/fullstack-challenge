@@ -9,6 +9,7 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import {
   CashOutUseCase,
   GetCurrentRoundUseCase,
@@ -34,6 +35,7 @@ import { mapGameError } from "./games.http-error.mapper";
 import { REALTIME_EVENT_BUS } from "../../games.providers";
 
 @Controller()
+@ApiTags("games")
 export class GamesController {
   constructor(
     private readonly getCurrentRoundUseCase: GetCurrentRoundUseCase,
@@ -82,6 +84,7 @@ export class GamesController {
 
   @Get("bets/me")
   @UseGuards(KeycloakJwtPlayerGuard)
+  @ApiBearerAuth()
   async myBets(
     @Req() request: AuthenticatedRequest,
     @Query("limit") limit?: string,
@@ -107,6 +110,7 @@ export class GamesController {
 
   @Post("bet")
   @UseGuards(KeycloakJwtPlayerGuard)
+  @ApiBearerAuth()
   async placeBet(
     @Req() request: AuthenticatedRequest,
     @Body() body: PlaceBetRequestDto,
@@ -131,6 +135,7 @@ export class GamesController {
 
   @Post("bet/cashout")
   @UseGuards(KeycloakJwtPlayerGuard)
+  @ApiBearerAuth()
   async cashOut(@Req() request: AuthenticatedRequest): Promise<unknown> {
     try {
       const result = await this.cashOutUseCase.execute(request.user.playerId);

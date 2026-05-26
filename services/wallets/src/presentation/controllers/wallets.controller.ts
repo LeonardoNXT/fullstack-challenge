@@ -1,4 +1,5 @@
 import { Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import {
   CreateWalletUseCase,
   GetWalletUseCase,
@@ -12,6 +13,7 @@ import { WalletResponseDto } from "../dtos/wallet-response.dto";
 import { mapWalletError } from "./wallets.http-error.mapper";
 
 @Controller()
+@ApiTags("wallets")
 export class WalletsController {
   constructor(
     private readonly createWalletUseCase: CreateWalletUseCase,
@@ -25,6 +27,7 @@ export class WalletsController {
 
   @Post()
   @UseGuards(KeycloakJwtPlayerGuard)
+  @ApiBearerAuth()
   async create(@Req() request: AuthenticatedRequest): Promise<CreateWalletResponseDto> {
     try {
       const result = await this.createWalletUseCase.execute({
@@ -40,6 +43,7 @@ export class WalletsController {
 
   @Get("me")
   @UseGuards(KeycloakJwtPlayerGuard)
+  @ApiBearerAuth()
   async me(@Req() request: AuthenticatedRequest): Promise<WalletResponseDto> {
     try {
       const wallet = await this.getWalletUseCase.execute({
