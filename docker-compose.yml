@@ -107,6 +107,8 @@ services:
       KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/crash-game/protocol/openid-connect/certs
       KEYCLOAK_CLIENT_ID: crash-game-client
       GAME_BETTING_WINDOW_MS: 10000
+      GAME_SETTLEMENT_DELAY_MS: 3000
+      GAME_SCHEDULER_INTERVAL_MS: 250
       GAME_CLIENT_SEED: crash-game
       GAME_HOUSE_EDGE_BPS: 100
       GAME_GROWTH_BPS_PER_SECOND: 1000

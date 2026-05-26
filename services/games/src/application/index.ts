@@ -14,4 +14,5 @@ export * from "./use-cases/open-round.use-case";
 export * from "./use-cases/place-bet.use-case";
 export * from "./use-cases/settle-bet-debit.use-case";
 export * from "./use-cases/start-round.use-case";
+export * from "./use-cases/tick-round-engine.use-case";
 export * from "./use-cases/verify-round.use-case";

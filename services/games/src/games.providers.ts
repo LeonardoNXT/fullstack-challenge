@@ -9,6 +9,7 @@ import {
   OpenRoundUseCase,
   PlaceBetUseCase,
   StartRoundUseCase,
+  TickRoundEngineUseCase,
   VerifyRoundUseCase,
   type Clock,
   type IdGenerator,
@@ -118,6 +119,16 @@ export const gameProviders = [
     useFactory: (roundRepository: RoundRepository): GetLeaderboardUseCase =>
       new GetLeaderboardUseCase(roundRepository),
     inject: [ROUND_REPOSITORY],
+  },
+  {
+    provide: TickRoundEngineUseCase,
+    useFactory: (
+      roundRepository: RoundRepository,
+      clock: Clock,
+      openRoundUseCase: OpenRoundUseCase,
+    ): TickRoundEngineUseCase =>
+      new TickRoundEngineUseCase(roundRepository, clock, openRoundUseCase),
+    inject: [ROUND_REPOSITORY, CLOCK, OpenRoundUseCase],
   },
 ];
 

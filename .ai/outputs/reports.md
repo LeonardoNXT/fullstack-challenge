@@ -245,3 +245,30 @@ Important limitation:
 Next recommended implementation step:
 
 - Add a round scheduler/engine service to move rounds through betting, running, crash, and settlement automatically, then connect WebSocket events.
+
+## 2026-05-26 - Games Round Scheduler
+
+Implemented the automatic in-memory round lifecycle engine.
+
+Added:
+
+- `TickRoundEngineUseCase` to drive the round lifecycle from application code.
+- Automatic transitions from no round -> betting, betting -> running, running -> crashed, crashed -> settled -> next betting round.
+- Auto cashout execution during running ticks.
+- Configurable scheduler interval, betting window, settlement delay, client seed, house edge, and multiplier growth.
+- `GamesRoundSchedulerService` using `setInterval` without adding new dependencies.
+- `GamesRuntimeConfig` helper used by both bootstrap and scheduler.
+- Unit tests covering opening, starting, auto cashout, crashing, settlement, and opening the next round.
+
+Validation:
+
+- `bun test packages/auth/tests packages/contracts/tests services/wallets/tests/unit services/games/tests/unit` passed 63 tests.
+- `docker compose config` succeeded. Docker still prints the local `C:\Users\Leona\.docker\config.json` permission warning, but the command exits successfully.
+
+Important limitation:
+
+- The scheduler mutates in-memory state only. Persistence, RabbitMQ settlement side effects, and WebSocket broadcasting still need to be connected.
+
+Next recommended implementation step:
+
+- Add WebSocket event infrastructure for round lifecycle and bet/cashout updates, using scheduler tick output as the source for broadcasts.
