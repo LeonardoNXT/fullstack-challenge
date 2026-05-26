@@ -3,7 +3,7 @@ import type {
   PublicBet,
   PublicRound,
 } from "@crash/contracts";
-import type { Round } from "../../domain";
+import type { BetSnapshot, Round } from "../../domain";
 
 export function toPublicRound(round: Round, serverTime: Date): PublicRound {
   const snapshot = round.toSnapshot();
@@ -39,4 +39,5 @@ export interface CashoutResultView {
   readonly round: PublicRound;
   readonly payoutCents: number;
   readonly multiplierBps: MultiplierBps;
+  readonly bet: BetSnapshot;
 }

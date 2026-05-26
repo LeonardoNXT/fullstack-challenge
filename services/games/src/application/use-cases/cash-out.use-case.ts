@@ -25,6 +25,7 @@ export class CashOutUseCase {
       round: toPublicRound(round, now),
       payoutCents: result.payoutCents,
       multiplierBps: snapshot.cashoutMultiplierBps ?? round.currentMultiplierAt(now),
+      bet: snapshot,
     };
   }
 }

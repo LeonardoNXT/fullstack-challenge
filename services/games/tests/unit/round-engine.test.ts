@@ -13,12 +13,14 @@ import {
   OpenRoundUseCase,
   PlaceBetUseCase,
   TickRoundEngineUseCase,
+  RealtimeEventFactory,
   type Clock,
   type IdGenerator,
   type SeedGenerator,
 } from "../../src/application";
 import { ProvablyFairService } from "../../src/domain";
 import { InMemoryRoundRepository } from "../../src/infrastructure";
+import { InMemoryRealtimeEventBus } from "../../src/infrastructure";
 
 class MutableClock implements Clock {
   constructor(private current: Date) {}
@@ -100,6 +102,24 @@ describe("TickRoundEngineUseCase", () => {
     expect(result.actions).toEqual(["opened"]);
     expect(result.round?.phase).toBe("betting");
     expect(result.round?.roundId).toBe("11111111-1111-4111-8111-111111111111");
+  });
+
+  test("publishes realtime events from tick results", async () => {
+    const bus = new InMemoryRealtimeEventBus();
+    const publishingTickEngine = new TickRoundEngineUseCase(
+      repository,
+      clock,
+      openRound,
+      bus,
+      new RealtimeEventFactory(),
+    );
+
+    await publishingTickEngine.execute(engineInput());
+
+    expect(bus.events.map((event) => event.type)).toEqual([
+      "round:betting-opened",
+      "round:tick",
+    ]);
   });
 
   test("starts betting round when betting window closes", async () => {

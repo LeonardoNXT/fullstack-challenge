@@ -2,7 +2,9 @@ import type { PublicRound } from "@crash/contracts";
 import type { BetSnapshot } from "../../domain";
 import { toPublicRound } from "../dtos/game-round-view";
 import type { Clock } from "../ports/clock";
+import type { RealtimeEventBus } from "../ports/realtime-event-bus";
 import type { RoundRepository } from "../ports/round.repository";
+import { RealtimeEventFactory } from "../services/realtime-event-factory";
 import { OpenRoundUseCase, type OpenRoundInput } from "./open-round.use-case";
 
 export type RoundEngineAction =
@@ -27,6 +29,8 @@ export class TickRoundEngineUseCase {
     private readonly roundRepository: RoundRepository,
     private readonly clock: Clock,
     private readonly openRoundUseCase: OpenRoundUseCase,
+    private readonly realtimeEventBus?: RealtimeEventBus,
+    private readonly realtimeEventFactory = new RealtimeEventFactory(),
   ) {}
 
   async execute(input: TickRoundEngineInput): Promise<TickRoundEngineOutput> {
@@ -35,25 +39,25 @@ export class TickRoundEngineUseCase {
 
     if (currentRound === null) {
       const opened = await this.openRoundUseCase.execute(input);
-      return { actions: ["opened"], round: opened, autoCashedOutBets: [] };
+      return this.publish({ actions: ["opened"], round: opened, autoCashedOutBets: [] });
     }
 
     if (currentRound.phase === "betting") {
       if (now < currentRound.bettingClosesAt) {
-        return {
+        return this.publish({
           actions: [],
           round: toPublicRound(currentRound, now),
           autoCashedOutBets: [],
-        };
+        });
       }
 
       currentRound.start(now);
       await this.roundRepository.save(currentRound);
-      return {
+      return this.publish({
         actions: ["started"],
         round: toPublicRound(currentRound, now),
         autoCashedOutBets: [],
-      };
+      });
     }
 
     if (currentRound.phase === "running") {
@@ -72,11 +76,11 @@ export class TickRoundEngineUseCase {
         await this.roundRepository.save(currentRound);
       }
 
-      return {
+      return this.publish({
         actions,
         round: toPublicRound(currentRound, now),
         autoCashedOutBets: autoCashedOut.map((bet) => bet.toSnapshot()),
-      };
+      });
     }
 
     if (currentRound.phase === "crashed") {
@@ -85,25 +89,37 @@ export class TickRoundEngineUseCase {
         crashedAt === undefined ||
         now.getTime() - crashedAt.getTime() < input.settlementDelayMs
       ) {
-        return {
+        return this.publish({
           actions: [],
           round: toPublicRound(currentRound, now),
           autoCashedOutBets: [],
-        };
+        });
       }
 
       currentRound.settle();
       await this.roundRepository.save(currentRound);
       const opened = await this.openRoundUseCase.execute(input);
 
-      return {
+      return this.publish({
         actions: ["settled", "opened"],
         round: opened,
         autoCashedOutBets: [],
-      };
+      });
     }
 
     const opened = await this.openRoundUseCase.execute(input);
-    return { actions: ["opened"], round: opened, autoCashedOutBets: [] };
+    return this.publish({ actions: ["opened"], round: opened, autoCashedOutBets: [] });
+  }
+
+  private async publish(output: TickRoundEngineOutput): Promise<TickRoundEngineOutput> {
+    if (this.realtimeEventBus === undefined) {
+      return output;
+    }
+
+    for (const event of this.realtimeEventFactory.fromTickResult(output)) {
+      await this.realtimeEventBus.publish(event);
+    }
+
+    return output;
   }
 }

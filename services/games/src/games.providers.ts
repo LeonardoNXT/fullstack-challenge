@@ -8,11 +8,13 @@ import {
   GetRoundHistoryUseCase,
   OpenRoundUseCase,
   PlaceBetUseCase,
+  RealtimeEventFactory,
   StartRoundUseCase,
   TickRoundEngineUseCase,
   VerifyRoundUseCase,
   type Clock,
   type IdGenerator,
+  type RealtimeEventBus,
   type RoundRepository,
   type SeedGenerator,
 } from "./application";
@@ -23,12 +25,14 @@ import {
   SystemClock,
   UuidIdGenerator,
 } from "./infrastructure";
+import { GamesRealtimeGateway } from "./presentation/gateways/games-realtime.gateway";
 
 export const ROUND_REPOSITORY = Symbol("ROUND_REPOSITORY");
 export const CLOCK = Symbol("CLOCK");
 export const ID_GENERATOR = Symbol("ID_GENERATOR");
 export const SEED_GENERATOR = Symbol("SEED_GENERATOR");
 export const KEYCLOAK_JWT_VERIFIER = Symbol("KEYCLOAK_JWT_VERIFIER");
+export const REALTIME_EVENT_BUS = Symbol("REALTIME_EVENT_BUS");
 
 export const gameProviders = [
   { provide: ROUND_REPOSITORY, useClass: InMemoryRoundRepository },
@@ -36,6 +40,9 @@ export const gameProviders = [
   { provide: ID_GENERATOR, useClass: UuidIdGenerator },
   { provide: SEED_GENERATOR, useClass: CryptoSeedGenerator },
   { provide: ProvablyFairService, useClass: ProvablyFairService },
+  { provide: RealtimeEventFactory, useClass: RealtimeEventFactory },
+  { provide: GamesRealtimeGateway, useClass: GamesRealtimeGateway },
+  { provide: REALTIME_EVENT_BUS, useExisting: GamesRealtimeGateway },
   {
     provide: KEYCLOAK_JWT_VERIFIER,
     useFactory: (): KeycloakJwtVerifier =>
@@ -126,9 +133,17 @@ export const gameProviders = [
       roundRepository: RoundRepository,
       clock: Clock,
       openRoundUseCase: OpenRoundUseCase,
+      realtimeEventBus: RealtimeEventBus,
+      realtimeEventFactory: RealtimeEventFactory,
     ): TickRoundEngineUseCase =>
-      new TickRoundEngineUseCase(roundRepository, clock, openRoundUseCase),
-    inject: [ROUND_REPOSITORY, CLOCK, OpenRoundUseCase],
+      new TickRoundEngineUseCase(
+        roundRepository,
+        clock,
+        openRoundUseCase,
+        realtimeEventBus,
+        realtimeEventFactory,
+      ),
+    inject: [ROUND_REPOSITORY, CLOCK, OpenRoundUseCase, REALTIME_EVENT_BUS, RealtimeEventFactory],
   },
 ];
 

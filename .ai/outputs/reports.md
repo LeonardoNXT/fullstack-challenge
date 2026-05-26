@@ -272,3 +272,32 @@ Important limitation:
 Next recommended implementation step:
 
 - Add WebSocket event infrastructure for round lifecycle and bet/cashout updates, using scheduler tick output as the source for broadcasts.
+
+## 2026-05-26 - Games Realtime Events And WebSocket Gateway
+
+Implemented the first realtime broadcasting slice for Games.
+
+Added:
+
+- Realtime event contracts for round lifecycle, round ticks, bet placement, wallet acceptance/rejection, and cashout.
+- `RealtimeEventFactory` to map scheduler/use-case outputs into WebSocket-safe payloads.
+- `RealtimeEventBus` port plus an in-memory implementation for unit tests.
+- Socket.IO Nest gateway prepared to emit events by event type.
+- Scheduler integration so round opening, start, crash, auto cashout, and ticks can be broadcast.
+- REST controller integration so placed and cashed-out bets publish realtime events.
+- Bet use cases now return bet snapshots where broadcasting needs the final domain state.
+- Unit tests covering event mapping, event ordering, in-memory publishing, and scheduler broadcast behavior.
+
+Validation:
+
+- `bun test packages\auth\tests packages\contracts\tests services\wallets\tests\unit services\games\tests\unit` passed 67 tests.
+- `docker compose config` succeeded. Docker still prints the local `C:\Users\Leona\.docker\config.json` permission warning, but the command exits successfully.
+
+Important limitation:
+
+- `services/games/package.json` now declares Socket.IO/Nest WebSocket dependencies, but `bun install` still cannot download packages in this machine because registry requests fail with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`.
+- Realtime broadcasting is in-memory/process-local for now. After RabbitMQ and persistence are connected, wallet updates and cross-service events should publish through the same event port.
+
+Next recommended implementation step:
+
+- Add RabbitMQ wallet command/event integration so Games can request bet debits and cashout credits, and Wallets can publish accepted/rejected/credited outcomes idempotently.

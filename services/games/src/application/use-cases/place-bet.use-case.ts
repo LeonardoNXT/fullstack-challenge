@@ -1,4 +1,5 @@
-import type { Cents, MultiplierBps, PlayerId, PublicBet } from "@crash/contracts";
+import type { Cents, MultiplierBps, PlayerId } from "@crash/contracts";
+import type { BetSnapshot } from "../../domain";
 import { GameApplicationError } from "../errors/game-application.error";
 import type { Clock } from "../ports/clock";
 import type { IdGenerator } from "../ports/id-generator";
@@ -18,7 +19,7 @@ export class PlaceBetUseCase {
     private readonly clock: Clock,
   ) {}
 
-  async execute(input: PlaceBetInput): Promise<PublicBet> {
+  async execute(input: PlaceBetInput): Promise<BetSnapshot> {
     const round = await this.roundRepository.findCurrent();
     if (round === null) {
       throw new GameApplicationError("CURRENT_ROUND_NOT_FOUND");
@@ -34,13 +35,6 @@ export class PlaceBetUseCase {
     });
     await this.roundRepository.save(round);
 
-    return {
-      betId: bet.betId,
-      roundId: bet.roundId,
-      playerId: bet.playerId,
-      username: bet.username,
-      amountCents: bet.amountCents,
-      status: bet.status,
-    };
+    return bet.toSnapshot();
   }
 }

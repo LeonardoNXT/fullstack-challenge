@@ -133,12 +133,16 @@ export class Round {
     return bet;
   }
 
-  acceptBet(betId: BetId): void {
-    this.findBet(betId).accept();
+  acceptBet(betId: BetId): Bet {
+    const bet = this.findBet(betId);
+    bet.accept();
+    return bet;
   }
 
-  rejectBet(betId: BetId, reason: string, settledAt: Date): void {
-    this.findBet(betId).reject(reason, settledAt);
+  rejectBet(betId: BetId, reason: string, settledAt: Date): Bet {
+    const bet = this.findBet(betId);
+    bet.reject(reason, settledAt);
+    return bet;
   }
 
   start(startedAt: Date): void {

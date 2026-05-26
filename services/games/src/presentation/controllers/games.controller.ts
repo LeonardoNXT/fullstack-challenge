@@ -1,4 +1,14 @@
-import { Body, Controller, Get, Param, Post, Query, Req, UseGuards } from "@nestjs/common";
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  Query,
+  Req,
+  UseGuards,
+} from "@nestjs/common";
 import {
   CashOutUseCase,
   GetCurrentRoundUseCase,
@@ -6,6 +16,8 @@ import {
   GetPlayerBetsUseCase,
   GetRoundHistoryUseCase,
   PlaceBetUseCase,
+  RealtimeEventFactory,
+  type RealtimeEventBus,
   VerifyRoundUseCase,
 } from "../../application";
 import {
@@ -19,6 +31,7 @@ import type { AuthenticatedRequest } from "../auth/authenticated-player";
 import { PlaceBetRequestDto } from "../dtos/place-bet-request.dto";
 import { HealthCheckResponseDto } from "../dtos/health-check-response.dto";
 import { mapGameError } from "./games.http-error.mapper";
+import { REALTIME_EVENT_BUS } from "../../games.providers";
 
 @Controller()
 export class GamesController {
@@ -30,6 +43,9 @@ export class GamesController {
     private readonly getLeaderboardUseCase: GetLeaderboardUseCase,
     private readonly placeBetUseCase: PlaceBetUseCase,
     private readonly cashOutUseCase: CashOutUseCase,
+    @Inject(REALTIME_EVENT_BUS)
+    private readonly realtimeEventBus: RealtimeEventBus,
+    private readonly realtimeEventFactory: RealtimeEventFactory,
   ) {}
 
   @Get("health")
@@ -96,7 +112,7 @@ export class GamesController {
     @Body() body: PlaceBetRequestDto,
   ): Promise<unknown> {
     try {
-      return await this.placeBetUseCase.execute({
+      const bet = await this.placeBetUseCase.execute({
         playerId: request.user.playerId,
         username: request.user.username,
         amountCents: makeCents(body.amountCents),
@@ -105,6 +121,9 @@ export class GamesController {
             ? undefined
             : makeMultiplierBps(body.autoCashoutMultiplierBps),
       });
+      await this.realtimeEventBus.publish(this.realtimeEventFactory.betPlaced(bet));
+
+      return bet;
     } catch (error) {
       throw mapGameError(error);
     }
@@ -114,7 +133,12 @@ export class GamesController {
   @UseGuards(KeycloakJwtPlayerGuard)
   async cashOut(@Req() request: AuthenticatedRequest): Promise<unknown> {
     try {
-      return await this.cashOutUseCase.execute(request.user.playerId);
+      const result = await this.cashOutUseCase.execute(request.user.playerId);
+      await this.realtimeEventBus.publish(
+        this.realtimeEventFactory.betCashedOut(result.bet),
+      );
+
+      return result;
     } catch (error) {
       throw mapGameError(error);
     }
