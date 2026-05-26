@@ -409,6 +409,62 @@ cd frontend && bun test
 
 ---
 
+## Implementação atual
+
+### Como rodar
+
+```bash
+bun install
+bun run docker:up
+```
+
+A stack sobe PostgreSQL, RabbitMQ, Keycloak, Kong, Games, Wallets e Frontend. O frontend fica em `http://localhost:3000`; as APIs ficam via Kong em `http://localhost:8000`.
+
+### URLs úteis
+
+| Recurso | URL |
+| --- | --- |
+| Frontend | `http://localhost:3000` |
+| Games via Kong | `http://localhost:8000/games` |
+| Wallets via Kong | `http://localhost:8000/wallets` |
+| Games Swagger | `http://localhost:4001/docs` |
+| Wallets Swagger | `http://localhost:4002/docs` |
+| Keycloak | `http://localhost:8080` |
+| RabbitMQ UI | `http://localhost:15672` |
+
+### Decisões e trade-offs
+
+- Persistência usa Prisma + PostgreSQL, com schemas separados para `games` e `wallets`.
+- Comunicação financeira entre Games e Wallets usa RabbitMQ com exchange direta `crash.wallet.v1`.
+- O frontend usa Vite + React para reduzir risco de entrega, com TanStack Query, Zustand-ready structure, Socket.IO client e Tailwind CSS v4.
+- O escopo atual mira os requisitos eliminatórios. Bônus como outbox/inbox transacional, auto bet, Playwright, observabilidade, rate limiting e Storybook ficaram fora desta etapa.
+- Valores monetários continuam em centavos inteiros; não há aritmética de ponto flutuante para dinheiro.
+
+### Testes
+
+```bash
+bun test packages/auth/tests packages/contracts/tests services/wallets/tests/unit services/games/tests/unit
+cd services/wallets && bun run test:e2e
+cd services/games && bun run test:e2e
+cd frontend && bun test
+cd frontend && bun run build
+docker compose config
+docker compose build games wallets frontend
+```
+
+### Smoke test validado
+
+Com `player` / `player123`, a stack Docker foi validada com:
+
+- `GET /games/health` e `GET /wallets/health` via Kong retornando `200`.
+- Swagger direto de Games e Wallets retornando `200`.
+- Frontend retornando `200`.
+- Wallet criada para o usuário autenticado.
+- Aposta criada em fase de betting, debitada via RabbitMQ e marcada como `accepted`.
+- Cashout executado durante fase running, creditado via RabbitMQ e refletido no saldo.
+
+---
+
 ## Bônus ⭐
 
 Não obrigatórios, mas diferenciam candidatos excepcionais:

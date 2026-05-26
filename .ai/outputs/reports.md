@@ -400,3 +400,32 @@ Validation:
 - `http://localhost:8000/wallets/health` returned `{"status":"ok","service":"wallets"}`.
 - Keycloak realm discovery returned HTTP `200`.
 - `bun test packages\auth\tests packages\contracts\tests services\wallets\tests\unit services\games\tests\unit` passed 76 tests.
+
+## 2026-05-26 - Required Full-Stack Completion Pass
+
+Implemented the non-bonus completion plan.
+
+Added:
+
+- Prisma persistence for Wallets and Games with separate schemas and generated clients.
+- RabbitMQ publishers/consumers for wallet debit and cashout credit flows.
+- Swagger docs on both backend services.
+- Vite React frontend with Keycloak login, wallet header, crash graph, betting controls, current bets, round history, Socket.IO realtime updates, loading/error states, and responsive dark UI.
+- Frontend Docker service and Docker Compose wiring.
+- Backend e2e smoke-style tests and frontend UI rule tests.
+- README setup, URLs, trade-offs, and validation notes.
+
+Validation:
+
+- Unit suite passed: `bun test packages/auth/tests packages/contracts/tests services/wallets/tests/unit services/games/tests/unit`.
+- Wallet e2e passed: `cd services/wallets && bun run test:e2e`.
+- Games e2e passed: `cd services/games && bun run test:e2e`.
+- Frontend tests and build passed.
+- `docker compose config` passed.
+- `docker compose build games wallets frontend` passed.
+- Full Docker stack started successfully and health/docs/frontend endpoints returned 200.
+- Authenticated smoke test with `player` / `player123` validated wallet creation, bet debit via RabbitMQ, accepted bet state, cashout, cashout credit, and balance update.
+
+Known trade-off:
+
+- Outbox/inbox transacional remains intentionally out of scope because the user asked to exclude bonuses for now.
