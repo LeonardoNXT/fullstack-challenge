@@ -52,3 +52,25 @@ Adjusted:
 Implementation guidance:
 
 - Deliver eliminatory flow first, but design schemas and interfaces so Tier 1 bonuses are part of the main implementation rather than bolted on later.
+
+## 2026-05-25 - Shared Contracts Package
+
+Implemented the next small task from the plan: shared contracts and primitives.
+
+Added:
+
+- `packages/contracts` as private workspace package `@crash/contracts`.
+- Branded primitive types for ids, cents, and multiplier basis points.
+- Integer-only money helpers for parsing, formatting, bet bounds, and payout calculation.
+- Wallet RabbitMQ exchange/routing key constants and typed message contracts.
+- Public game DTO types for rounds and bets.
+- Bun tests for money, multiplier, and event constants.
+
+Validation:
+
+- `bun test tests` from `packages/contracts` passed 9 tests.
+- Bun printed a Windows `EPERM` warning while reading the workspace root, but the command exited successfully with 0 failures.
+
+Next recommended implementation step:
+
+- Build the Wallet domain and ledger using `@crash/contracts` money primitives.
