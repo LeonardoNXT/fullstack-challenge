@@ -120,3 +120,30 @@ Validation:
 Next recommended implementation step:
 
 - Introduce Wallet REST endpoints wired to the application use cases with an in-memory repository first, then replace the repository with Prisma persistence.
+
+## 2026-05-26 - Wallet REST Endpoints With In-Memory Repository
+
+Implemented the first Wallet presentation wiring.
+
+Added:
+
+- `POST /` on Wallets Service to create the authenticated player's wallet.
+- `GET /me` on Wallets Service to return the authenticated player's wallet.
+- Wallet response DTOs.
+- HTTP error mapper for Wallet application/domain errors.
+- Nest providers connecting use cases to `InMemoryWalletRepository`.
+- Temporary bearer-token player guard that requires a bearer token and extracts `sub` / `preferred_username` from the JWT payload.
+- Default test wallet balance constant of `100000` cents for wallet creation.
+
+Important limitation:
+
+- The temporary guard does not validate JWT signature/JWKS yet. It only enforces bearer-token shape and extracts player identity. Replace it with Keycloak validation in the auth task before treating authentication as complete.
+- Controller-level tests were not kept because this local environment cannot install Nest dependencies yet (`bun install` fails with `UNABLE_TO_VERIFY_LEAF_SIGNATURE`). Domain/application tests still run.
+
+Validation:
+
+- `bun test services/wallets/tests/unit packages/contracts/tests` from the repo root passed 26 tests.
+
+Next recommended implementation step:
+
+- Implement real Keycloak JWT validation for backend auth, then add controller/API tests once dependencies install successfully.
