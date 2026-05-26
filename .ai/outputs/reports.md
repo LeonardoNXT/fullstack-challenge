@@ -174,3 +174,25 @@ Validation:
 Next recommended implementation step:
 
 - Add the same auth package to Games when authenticated game endpoints are introduced.
+
+## 2026-05-26 - Games Domain And Provably Fair
+
+Implemented the first pure Games domain slice.
+
+Added:
+
+- `ProvablyFairService` with SHA-256 server seed hashing, HMAC-SHA256 crash point calculation, house edge support, and verification payload.
+- `Bet` entity with pending/accepted/rejected/cashed_out/lost status transitions, integer payout calculation, and auto-cashout target storage.
+- `Round` aggregate with betting/running/crashed/settled lifecycle, one bet per player, server-time multiplier calculation, manual cashout, auto cashout, crash settlement, and snapshots.
+- Games domain error codes.
+- Games dependency on `@crash/contracts`.
+- Unit tests for provably fair, bet rules, round transitions, duplicate bet prevention, manual cashout, auto cashout, and crash loss settlement.
+
+Validation:
+
+- `bun test services/games/tests/unit packages/contracts/tests` passed 26 tests.
+- `bun test packages/auth/tests packages/contracts/tests services/wallets/tests/unit services/games/tests/unit` passed 48 tests.
+
+Next recommended implementation step:
+
+- Add Games application use cases and an in-memory round repository/engine boundary before wiring REST/WebSocket/RabbitMQ.
