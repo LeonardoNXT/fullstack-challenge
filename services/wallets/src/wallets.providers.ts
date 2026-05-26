@@ -1,4 +1,8 @@
 import {
+  KeycloakJwtVerifier,
+  type KeycloakJwtVerifierConfig,
+} from "@crash/auth";
+import {
   CreateWalletUseCase,
   CreditWalletUseCase,
   DebitWalletUseCase,
@@ -8,11 +12,17 @@ import {
 import { InMemoryWalletRepository } from "./infrastructure";
 
 export const WALLET_REPOSITORY = Symbol("WALLET_REPOSITORY");
+export const KEYCLOAK_JWT_VERIFIER = Symbol("KEYCLOAK_JWT_VERIFIER");
 
 export const walletProviders = [
   {
     provide: WALLET_REPOSITORY,
     useClass: InMemoryWalletRepository,
+  },
+  {
+    provide: KEYCLOAK_JWT_VERIFIER,
+    useFactory: (): KeycloakJwtVerifier =>
+      new KeycloakJwtVerifier(getKeycloakJwtVerifierConfig()),
   },
   {
     provide: CreateWalletUseCase,
@@ -39,3 +49,15 @@ export const walletProviders = [
     inject: [WALLET_REPOSITORY],
   },
 ];
+
+function getKeycloakJwtVerifierConfig(): KeycloakJwtVerifierConfig {
+  return {
+    issuer:
+      process.env.KEYCLOAK_ISSUER ??
+      "http://localhost:8080/realms/crash-game",
+    jwksUrl:
+      process.env.KEYCLOAK_JWKS_URL ??
+      "http://localhost:8080/realms/crash-game/protocol/openid-connect/certs",
+    clientId: process.env.KEYCLOAK_CLIENT_ID ?? "crash-game-client",
+  };
+}

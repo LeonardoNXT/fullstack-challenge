@@ -147,3 +147,30 @@ Validation:
 Next recommended implementation step:
 
 - Implement real Keycloak JWT validation for backend auth, then add controller/API tests once dependencies install successfully.
+
+## 2026-05-26 - Keycloak JWT Verification
+
+Implemented real JWT validation for Wallet authenticated endpoints.
+
+Added:
+
+- `packages/auth` workspace package with a dependency-free `KeycloakJwtVerifier`.
+- RS256 signature validation through WebCrypto and Keycloak JWKS.
+- Claim validation for issuer, expiration, and configured client id through `aud` or `azp`.
+- Tests for valid token verification, audience handling, invalid issuer, invalid client, and tampered signatures.
+- `KeycloakJwtPlayerGuard` in Wallets Service, replacing the temporary payload-only bearer guard.
+- Wallet env settings for `KEYCLOAK_ISSUER`, `KEYCLOAK_JWKS_URL`, and `KEYCLOAK_CLIENT_ID`.
+
+Docker auth configuration:
+
+- `KEYCLOAK_ISSUER` stays `http://localhost:8080/realms/crash-game` because browser-issued tokens use the public localhost issuer.
+- `KEYCLOAK_JWKS_URL` uses `http://keycloak:8080/.../certs` in Docker so the Wallet container can reach Keycloak internally.
+
+Validation:
+
+- `bun test packages/auth/tests packages/contracts/tests services/wallets/tests/unit` passed 31 tests.
+- `docker compose config` succeeded. Docker still prints the local `C:\Users\Leona\.docker\config.json` permission warning, but the command exits successfully.
+
+Next recommended implementation step:
+
+- Add the same auth package to Games when authenticated game endpoints are introduced.

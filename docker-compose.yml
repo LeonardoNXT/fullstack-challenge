@@ -128,6 +128,9 @@ services:
       PORT: 4002
       DATABASE_URL: postgresql://admin:admin@postgres:5432/wallets
       RABBITMQ_URL: amqp://admin:admin@rabbitmq:5672
+      KEYCLOAK_ISSUER: http://localhost:8080/realms/crash-game
+      KEYCLOAK_JWKS_URL: http://keycloak:8080/realms/crash-game/protocol/openid-connect/certs
+      KEYCLOAK_CLIENT_ID: crash-game-client
     depends_on:
       postgres:
         condition: service_healthy

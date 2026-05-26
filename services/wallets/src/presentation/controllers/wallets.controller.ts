@@ -4,7 +4,7 @@ import {
   GetWalletUseCase,
   TEST_WALLET_INITIAL_BALANCE_CENTS,
 } from "../../application";
-import { BearerTokenPlayerGuard } from "../auth/bearer-token-player.guard";
+import { KeycloakJwtPlayerGuard } from "../auth/keycloak-jwt-player.guard";
 import type { AuthenticatedRequest } from "../auth/authenticated-player";
 import { CreateWalletResponseDto } from "../dtos/create-wallet-response.dto";
 import { HealthCheckResponseDto } from "../dtos/health-check-response.dto";
@@ -24,7 +24,7 @@ export class WalletsController {
   }
 
   @Post()
-  @UseGuards(BearerTokenPlayerGuard)
+  @UseGuards(KeycloakJwtPlayerGuard)
   async create(@Req() request: AuthenticatedRequest): Promise<CreateWalletResponseDto> {
     try {
       const result = await this.createWalletUseCase.execute({
@@ -39,7 +39,7 @@ export class WalletsController {
   }
 
   @Get("me")
-  @UseGuards(BearerTokenPlayerGuard)
+  @UseGuards(KeycloakJwtPlayerGuard)
   async me(@Req() request: AuthenticatedRequest): Promise<WalletResponseDto> {
     try {
       const wallet = await this.getWalletUseCase.execute({
