@@ -6,5 +6,6 @@ export interface RoundRepository {
   findById(roundId: RoundId): Promise<Round | null>;
   findRecentSettled(limit: number): Promise<readonly Round[]>;
   findBetsByPlayerId(playerId: PlayerId, limit: number): Promise<readonly BetSnapshot[]>;
+  findAllBets(limit: number): Promise<readonly BetSnapshot[]>;
   save(round: Round): Promise<void>;
 }

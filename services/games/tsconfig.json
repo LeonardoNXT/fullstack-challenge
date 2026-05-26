@@ -19,6 +19,7 @@
     "noFallthroughCasesInSwitch": true,
     "paths": {
       "@/*": ["./src/*"],
+      "@crash/auth": ["../../packages/auth/src/index.ts"],
       "@crash/contracts": ["../../packages/contracts/src/index.ts"]
     }
   },

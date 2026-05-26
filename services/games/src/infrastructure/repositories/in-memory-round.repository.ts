@@ -38,13 +38,14 @@ export class InMemoryRoundRepository implements RoundRepository {
     playerId: PlayerId,
     limit: number,
   ): Promise<readonly BetSnapshot[]> {
-    return this.insertionOrder
-      .map((roundId) => this.roundsById.get(roundId))
-      .filter((snapshot): snapshot is RoundSnapshot => snapshot !== undefined)
-      .flatMap((snapshot) => snapshot.bets)
+    return this.getAllBets()
       .filter((bet) => bet.playerId === playerId)
       .slice(-limit)
       .reverse();
+  }
+
+  async findAllBets(limit: number): Promise<readonly BetSnapshot[]> {
+    return this.getAllBets().slice(-limit).reverse();
   }
 
   async save(round: Round): Promise<void> {
@@ -58,5 +59,12 @@ export class InMemoryRoundRepository implements RoundRepository {
   clear(): void {
     this.roundsById.clear();
     this.insertionOrder.splice(0, this.insertionOrder.length);
+  }
+
+  private getAllBets(): readonly BetSnapshot[] {
+    return this.insertionOrder
+      .map((roundId) => this.roundsById.get(roundId))
+      .filter((snapshot): snapshot is RoundSnapshot => snapshot !== undefined)
+      .flatMap((snapshot) => snapshot.bets);
   }
 }

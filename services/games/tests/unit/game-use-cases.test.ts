@@ -14,6 +14,9 @@ import {
   CrashRoundUseCase,
   GameApplicationError,
   GetCurrentRoundUseCase,
+  GetLeaderboardUseCase,
+  GetPlayerBetsUseCase,
+  GetRoundHistoryUseCase,
   OpenRoundUseCase,
   PlaceBetUseCase,
   RejectBetDebitUseCase,
@@ -200,6 +203,76 @@ describe("Games application use cases", () => {
 
     expect(verification.serverSeed).toBe("server-seed-1");
     expect(verification.validSeedHash).toBe(true);
+  });
+
+  test("returns player bets and settled round history", async () => {
+    await openDefaultRound({ crashPointBps: makeMultiplierBps(20000) });
+    const placeBet = new PlaceBetUseCase(repository, idGenerator, clock);
+    await placeBet.execute({
+      playerId: asPlayerId("player-1"),
+      username: "player",
+      amountCents: makeCents(1000),
+    });
+    await new AcceptBetDebitUseCase(repository).execute({ roundId, betId: firstBetId });
+    clock.setNow(new Date("2026-05-26T00:00:10.000Z"));
+    await new StartRoundUseCase(repository, clock).execute();
+    clock.setNow(new Date("2026-05-26T00:00:12.000Z"));
+    await new CrashRoundUseCase(repository, clock).execute();
+    const round = await repository.findById(roundId);
+    if (round === null) {
+      throw new Error("Expected round");
+    }
+    round.settle();
+    await repository.save(round);
+
+    const bets = await new GetPlayerBetsUseCase(repository).execute(
+      asPlayerId("player-1"),
+    );
+    const history = await new GetRoundHistoryUseCase(repository, clock).execute();
+
+    expect(bets).toHaveLength(1);
+    expect(bets[0].status).toBe("lost");
+    expect(history).toHaveLength(1);
+    expect(history[0].phase).toBe("settled");
+  });
+
+  test("computes leaderboard profit from settled bets", async () => {
+    await openDefaultRound({ crashPointBps: makeMultiplierBps(30000) });
+    const placeBet = new PlaceBetUseCase(repository, idGenerator, clock);
+    await placeBet.execute({
+      playerId: asPlayerId("player-1"),
+      username: "winner",
+      amountCents: makeCents(1000),
+    });
+    await placeBet.execute({
+      playerId: asPlayerId("player-2"),
+      username: "loser",
+      amountCents: makeCents(1000),
+    });
+    await new AcceptBetDebitUseCase(repository).execute({ roundId, betId: firstBetId });
+    await new AcceptBetDebitUseCase(repository).execute({ roundId, betId: secondBetId });
+    clock.setNow(new Date("2026-05-26T00:00:10.000Z"));
+    await new StartRoundUseCase(repository, clock).execute();
+    clock.setNow(new Date("2026-05-26T00:00:11.000Z"));
+    await new CashOutUseCase(repository, clock).execute(asPlayerId("player-1"));
+    clock.setNow(new Date("2026-05-26T00:00:12.000Z"));
+    await new CrashRoundUseCase(repository, clock).execute();
+
+    const leaderboard = await new GetLeaderboardUseCase(repository).execute();
+
+    expect(leaderboard).toHaveLength(2);
+    expect(leaderboard[0]).toMatchObject({
+      username: "winner",
+      profitCents: 500,
+      wageredCents: 1000,
+      payoutCents: 1500,
+    });
+    expect(leaderboard[1]).toMatchObject({
+      username: "loser",
+      profitCents: -1000,
+      wageredCents: 1000,
+      payoutCents: 0,
+    });
   });
 
   test("throws when current round is missing", async () => {

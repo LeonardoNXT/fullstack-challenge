@@ -218,3 +218,30 @@ Validation:
 Next recommended implementation step:
 
 - Expose Games REST endpoints using the application use cases and in-memory repository, then add the Keycloak guard to authenticated game endpoints.
+
+## 2026-05-26 - Games REST Endpoints With In-Memory Repository
+
+Implemented the first Games presentation wiring.
+
+Added:
+
+- REST endpoints for current round, round history, provably fair verification, player bets, leaderboard, placing bets, and cashout.
+- Keycloak JWT guard for authenticated Games endpoints using the shared `@crash/auth` verifier.
+- Games providers connecting use cases to in-memory repository, system clock, UUID ids, crypto seed generator, and provably fair service.
+- Bootstrap service that opens an initial in-memory round on service startup.
+- Request DTO for placing bets and HTTP error mapping for application/domain/body parsing errors.
+- Games env settings for Keycloak and initial round configuration.
+- Application use cases for round history, player bets, and leaderboard.
+
+Validation:
+
+- `bun test packages/auth/tests packages/contracts/tests services/wallets/tests/unit services/games/tests/unit` passed 58 tests.
+- `docker compose config` succeeded. Docker still prints the local `C:\Users\Leona\.docker\config.json` permission warning, but the command exits successfully.
+
+Important limitation:
+
+- The current Games REST wiring still uses in-memory state and does not publish RabbitMQ wallet debit/credit commands yet. Placing a bet returns a pending bet until the later messaging integration accepts/rejects it.
+
+Next recommended implementation step:
+
+- Add a round scheduler/engine service to move rounds through betting, running, crash, and settlement automatically, then connect WebSocket events.
