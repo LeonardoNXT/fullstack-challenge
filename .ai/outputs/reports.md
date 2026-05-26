@@ -333,3 +333,29 @@ Important limitation:
 Next recommended implementation step:
 
 - Add concrete RabbitMQ adapters/consumers for the existing wallet command/event ports, then connect wallet result events back into Games acceptance/rejection/cashout settlement paths.
+
+## 2026-05-26 - Games Wallet Event Handling
+
+Implemented the Games-side handler for Wallet result events.
+
+Added:
+
+- `HandleWalletEventUseCase` to consume Wallet events and update Games bet state.
+- `ProcessedWalletEventStore` port plus in-memory implementation for inbox-style deduplication by `eventId`.
+- Games provider wiring for `AcceptBetDebitUseCase`, `RejectBetDebitUseCase`, and `HandleWalletEventUseCase`.
+- Realtime publishing when wallet debit confirmation accepts or rejects a bet.
+- Unit tests for accepted debit, rejected debit, and duplicate Wallet event handling.
+
+Validation:
+
+- `bun test packages\auth\tests packages\contracts\tests services\wallets\tests\unit services\games\tests\unit` passed 76 tests.
+- `docker compose config` succeeded. Docker still prints the local `C:\Users\Leona\.docker\config.json` permission warning, but the command exits successfully.
+
+Important limitation:
+
+- This is still broker-agnostic application wiring. RabbitMQ consumers/producers are the remaining piece to move these messages between containers at runtime.
+- Cashout credit confirmation is recorded as processed, but it does not mutate the bet because the bet is already cashed out synchronously on the Games side before the wallet credit command is sent.
+
+Next recommended implementation step:
+
+- Add concrete RabbitMQ publisher/consumer adapters for the existing ports, using the current command/event handlers as the only application boundary.

@@ -1,20 +1,24 @@
 import { KeycloakJwtVerifier, type KeycloakJwtVerifierConfig } from "@crash/auth";
 import {
+  AcceptBetDebitUseCase,
   CashOutUseCase,
   CrashRoundUseCase,
   GetCurrentRoundUseCase,
   GetLeaderboardUseCase,
   GetPlayerBetsUseCase,
   GetRoundHistoryUseCase,
+  HandleWalletEventUseCase,
   OpenRoundUseCase,
   PlaceBetUseCase,
   RealtimeEventFactory,
+  RejectBetDebitUseCase,
   StartRoundUseCase,
   TickRoundEngineUseCase,
   VerifyRoundUseCase,
   type Clock,
   type IdGenerator,
   type MessageIdGenerator,
+  type ProcessedWalletEventStore,
   type RealtimeEventBus,
   type RoundRepository,
   type SeedGenerator,
@@ -24,6 +28,7 @@ import {
 import { ProvablyFairService } from "./domain";
 import {
   CryptoSeedGenerator,
+  InMemoryProcessedWalletEventStore,
   InMemoryWalletCommandPublisher,
   InMemoryRoundRepository,
   SystemClock,
@@ -37,6 +42,7 @@ export const CLOCK = Symbol("CLOCK");
 export const ID_GENERATOR = Symbol("ID_GENERATOR");
 export const SEED_GENERATOR = Symbol("SEED_GENERATOR");
 export const MESSAGE_ID_GENERATOR = Symbol("MESSAGE_ID_GENERATOR");
+export const PROCESSED_WALLET_EVENT_STORE = Symbol("PROCESSED_WALLET_EVENT_STORE");
 export const KEYCLOAK_JWT_VERIFIER = Symbol("KEYCLOAK_JWT_VERIFIER");
 export const REALTIME_EVENT_BUS = Symbol("REALTIME_EVENT_BUS");
 export const WALLET_COMMAND_PUBLISHER = Symbol("WALLET_COMMAND_PUBLISHER");
@@ -47,6 +53,10 @@ export const gameProviders = [
   { provide: ID_GENERATOR, useClass: UuidIdGenerator },
   { provide: SEED_GENERATOR, useClass: CryptoSeedGenerator },
   { provide: MESSAGE_ID_GENERATOR, useClass: UuidMessageIdGenerator },
+  {
+    provide: PROCESSED_WALLET_EVENT_STORE,
+    useClass: InMemoryProcessedWalletEventStore,
+  },
   { provide: WALLET_COMMAND_PUBLISHER, useClass: InMemoryWalletCommandPublisher },
   { provide: ProvablyFairService, useClass: ProvablyFairService },
   { provide: RealtimeEventFactory, useClass: RealtimeEventFactory },
@@ -172,6 +182,44 @@ export const gameProviders = [
     useFactory: (roundRepository: RoundRepository): GetLeaderboardUseCase =>
       new GetLeaderboardUseCase(roundRepository),
     inject: [ROUND_REPOSITORY],
+  },
+  {
+    provide: AcceptBetDebitUseCase,
+    useFactory: (roundRepository: RoundRepository): AcceptBetDebitUseCase =>
+      new AcceptBetDebitUseCase(roundRepository),
+    inject: [ROUND_REPOSITORY],
+  },
+  {
+    provide: RejectBetDebitUseCase,
+    useFactory: (
+      roundRepository: RoundRepository,
+      clock: Clock,
+    ): RejectBetDebitUseCase => new RejectBetDebitUseCase(roundRepository, clock),
+    inject: [ROUND_REPOSITORY, CLOCK],
+  },
+  {
+    provide: HandleWalletEventUseCase,
+    useFactory: (
+      acceptBetDebitUseCase: AcceptBetDebitUseCase,
+      rejectBetDebitUseCase: RejectBetDebitUseCase,
+      processedWalletEventStore: ProcessedWalletEventStore,
+      realtimeEventBus: RealtimeEventBus,
+      realtimeEventFactory: RealtimeEventFactory,
+    ): HandleWalletEventUseCase =>
+      new HandleWalletEventUseCase(
+        acceptBetDebitUseCase,
+        rejectBetDebitUseCase,
+        processedWalletEventStore,
+        realtimeEventBus,
+        realtimeEventFactory,
+      ),
+    inject: [
+      AcceptBetDebitUseCase,
+      RejectBetDebitUseCase,
+      PROCESSED_WALLET_EVENT_STORE,
+      REALTIME_EVENT_BUS,
+      RealtimeEventFactory,
+    ],
   },
   {
     provide: TickRoundEngineUseCase,
