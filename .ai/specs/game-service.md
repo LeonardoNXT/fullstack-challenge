@@ -32,6 +32,7 @@ Rules:
 - Cashout payout is `amountCents * multiplier`, rounded down to cents.
 - A cashed-out bet cannot cash out again.
 - A lost bet remains debited.
+- Auto cashout is supported by storing an optional target multiplier on the bet and settling automatically when the server multiplier reaches it before crash.
 
 ## REST Endpoints
 
@@ -39,6 +40,7 @@ Rules:
 - `GET /rounds/history`
 - `GET /rounds/:roundId/verify`
 - `GET /bets/me`
+- `GET /leaderboard`
 - `POST /bet`
 - `POST /bet/cashout`
 
@@ -56,6 +58,11 @@ Consume:
 - `wallet.cashout.credited`
 - `wallet.cashout.credit.rejected`
 
+Reliability:
+
+- Persist outgoing events in a transactional outbox.
+- Deduplicate incoming wallet events in an inbox.
+
 ## WebSocket Events
 
 - Emit round state changes.
@@ -70,3 +77,5 @@ Consume:
 - Cashout without accepted active bet returns conflict.
 - Crash settles all non-cashed accepted bets as lost.
 - Round history shows recent crash points and verification data.
+- Auto cashout settles before manual cashout if target is reached first.
+- Leaderboard returns top players by profit for 24h and week windows.

@@ -19,6 +19,8 @@ Own player balances and financial ledger using integer cents.
 - Duplicate operation ids do not apply side effects twice.
 - Debit requires sufficient funds.
 - Credit always increases balance unless operation was already applied.
+- Incoming messages are deduplicated through an inbox.
+- Published financial results are stored in a transactional outbox before delivery.
 
 ## REST Endpoints
 
@@ -54,3 +56,4 @@ Publish:
 - Duplicate debit request does not debit twice.
 - Duplicate credit request does not credit twice.
 - `GET /wallets/me` returns current balance in cents.
+- Outbox/inbox tables make message replay safe.

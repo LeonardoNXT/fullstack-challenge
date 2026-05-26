@@ -2,7 +2,7 @@
 
 ## System Components
 
-- Frontend: Vite React app served on port `3000`.
+- Frontend: TanStack Start React app served on port `3000`; Vite is acceptable only if TanStack Start blocks delivery.
 - Kong: API gateway on `8000`, routes public client traffic to backend services.
 - Keycloak: identity provider on `8080`, realm `crash-game`.
 - Games Service: NestJS service on `4001`, owns rounds, bets, crash engine, WebSocket, and provably fair data.
@@ -74,7 +74,7 @@ Delivery model:
 - At-least-once delivery.
 - Idempotent consumers.
 - Inbox table per service for processed message ids.
-- Outbox is a bonus, but the implementation should not make it impossible to add.
+- Transactional outbox per service for financial/gameplay events.
 
 ## Time And Multiplier
 
@@ -95,11 +95,29 @@ Games database:
 - rounds
 - bets
 - processed messages
-- optional outbox
+- outbox messages
 
 Wallets database:
 
 - wallets
 - ledger entries
 - processed messages
-- optional outbox
+- outbox messages
+
+## Documentation
+
+Both backend services must expose Swagger/OpenAPI generated with `@nestjs/swagger`. The final README must explain setup, architecture decisions, message flows, provably fair verification, trade-offs, and test commands.
+
+## Differentiators Targeted
+
+Implement these README bonus items when eliminatory flow is stable:
+
+- Outbox/Inbox transactional processing.
+- Auto cashout.
+- Deterministic seed/script for E2E scenarios.
+- Basic observability.
+- Playwright browser E2E.
+- Rate limiting through Kong or application middleware.
+- Leaderboard.
+- Formula display in the UI.
+- Optional sound effects and Storybook after gameplay confidence is high.

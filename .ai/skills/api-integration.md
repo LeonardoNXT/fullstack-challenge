@@ -18,4 +18,11 @@
 - Define message contracts centrally.
 - Include `eventId` and `correlationId`.
 - Consumers must be idempotent.
+- Use inbox tables for consumed messages.
+- Use outbox tables for messages published after database changes.
 - Log correlation ids for debugging.
+
+## OpenAPI
+
+- Generate Swagger/OpenAPI docs with `@nestjs/swagger`.
+- Keep DTOs and examples aligned with frontend usage.

@@ -2,11 +2,16 @@
 
 ## Stack
 
-- Vite for the app scaffold.
+- TanStack Start for the app scaffold whenever feasible.
 - React functional components.
 - TanStack Query for REST data and mutations.
 - Zustand for ephemeral local state such as connection status and UI preferences.
 - Tailwind CSS v4 for styling.
+- shadcn/ui for accessible component primitives.
+
+Fallback:
+
+- Use Vite only if TanStack Start creates delivery risk.
 
 ## Component Rules
 

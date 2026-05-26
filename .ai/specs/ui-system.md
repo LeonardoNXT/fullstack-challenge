@@ -17,8 +17,8 @@ Create a consistent, usable dark-mode UI for the Crash Game.
 
 Core components:
 
-- Button
-- Input
+- shadcn/ui Button
+- shadcn/ui Input
 - Number input for money
 - Card for repeated items only
 - Toast

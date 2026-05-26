@@ -13,7 +13,7 @@ This folder is the implementation memory for the Crash Game challenge. Use it be
 
 ## Current Priority
 
-The project is still at scaffold stage. The first implementation goal is to make the local stack bootable with one command, then build the wallet, game engine, RabbitMQ integration, real-time UI, and tests.
+The project is still at scaffold stage. The first implementation goal is to make the local stack bootable with one command, then build the wallet, game engine, RabbitMQ integration, real-time UI, tests, and README-aligned differentiators.
 
 ## Non-Negotiables
 
@@ -24,3 +24,5 @@ The project is still at scaffold stage. The first implementation goal is to make
 - Keep REST player actions separate from WebSocket server push events.
 - Validate JWTs from Keycloak on authenticated endpoints.
 - Add tests for domain rules and core gameplay flows.
+- Prefer the challenge's favored stack choices: Keycloak, Kong, RabbitMQ, PostgreSQL, NestJS, Bun, TanStack, Tailwind v4, shadcn/ui, and Swagger/OpenAPI.
+- Treat high-signal bonuses as planned scope unless they threaten eliminatory delivery.

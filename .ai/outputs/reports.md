@@ -36,3 +36,19 @@ Remaining infrastructure work:
 - Add frontend service after frontend scaffold exists.
 - Add automated migrations and seed data when persistence is implemented.
 - Validate full `bun run docker:up` once container builds are ready.
+
+## 2026-05-25 - README Compliance Audit
+
+Reread the full `README.md` and compared it against the `.ai` spec-driven design.
+
+Adjusted:
+
+- Added `context/readme-compliance.md` as the checklist tying README requirements, preferred stack, scoring criteria, and bonuses to `.ai` specs.
+- Promoted preferred stack choices into the specs: Keycloak, Kong, RabbitMQ, PostgreSQL, NestJS, Bun, TanStack, Tailwind v4, shadcn/ui, and Swagger/OpenAPI.
+- Updated frontend direction from Vite-first to TanStack Start-first, with Vite only as a delivery-risk fallback.
+- Promoted Outbox/Inbox from optional future work to core architecture for financial/game messaging reliability.
+- Added specs for bonus differentiators and OpenAPI.
+
+Implementation guidance:
+
+- Deliver eliminatory flow first, but design schemas and interfaces so Tier 1 bonuses are part of the main implementation rather than bolted on later.

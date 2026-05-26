@@ -44,6 +44,13 @@
 - Unit tests target domain rules first.
 - E2E tests target API and cross-service flows.
 - Use deterministic seeds in tests where crash point matters.
+- Add Playwright tests after the browser flow is available.
+
+## API Docs
+
+- Use Swagger/OpenAPI in both backend services.
+- Keep public DTOs documented.
+- Update README when endpoint behavior changes.
 
 ## Git
 
