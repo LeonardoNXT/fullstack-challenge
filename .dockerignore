@@ -1,0 +1,22 @@
+node_modules
+**/node_modules
+.git
+.gitignore
+.ai
+
+# Local environment files
+.env
+.env.*
+services/*/.env
+services/*/.env.*
+
+# Test-only files are not needed in runtime images.
+tests
+**/tests
+**/*.test.ts
+**/*.spec.ts
+
+# Local/editor artifacts
+.vscode
+.idea
+*.log

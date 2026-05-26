@@ -359,3 +359,23 @@ Important limitation:
 Next recommended implementation step:
 
 - Add concrete RabbitMQ publisher/consumer adapters for the existing ports, using the current command/event handlers as the only application boundary.
+
+## 2026-05-26 - Docker Workspace Build Fix
+
+Fixed Docker builds after introducing monorepo workspace packages.
+
+Changed:
+
+- Updated `docker-compose.yml` so Games and Wallets build from the repository root context.
+- Updated `services/games/Dockerfile` and `services/wallets/Dockerfile` so `bun install` runs with the root workspace visible.
+- Added root `.dockerignore` to keep local `node_modules`, env files, tests, and editor artifacts out of runtime images.
+
+Reason:
+
+- Service Dockerfiles previously copied only each service `package.json`, so Bun could not resolve `@crash/auth` and `@crash/contracts` workspace dependencies inside Docker.
+
+Validation:
+
+- `docker compose config` succeeded.
+- `docker compose build games wallets` succeeded and built both runtime images.
+- `bun test packages\auth\tests packages\contracts\tests services\wallets\tests\unit services\games\tests\unit` passed 76 tests.
