@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  Header,
   Inject,
   Param,
   Post,
@@ -55,6 +56,20 @@ export class GamesController {
     return { status: "ok", service: "games" };
   }
 
+  @Get("metrics")
+  @Header("content-type", "text/plain; version=0.0.4")
+  metrics(): string {
+    const memory = process.memoryUsage();
+    return [
+      "# HELP crash_games_process_uptime_seconds Process uptime in seconds.",
+      "# TYPE crash_games_process_uptime_seconds gauge",
+      `crash_games_process_uptime_seconds ${process.uptime().toFixed(0)}`,
+      "# HELP crash_games_heap_used_bytes Heap used in bytes.",
+      "# TYPE crash_games_heap_used_bytes gauge",
+      `crash_games_heap_used_bytes ${memory.heapUsed}`,
+    ].join("\n");
+  }
+
   @Get("rounds/current")
   async currentRound(): Promise<PublicRound> {
     try {
@@ -100,9 +115,15 @@ export class GamesController {
   }
 
   @Get("leaderboard")
-  async leaderboard(@Query("limit") limit?: string): Promise<unknown> {
+  async leaderboard(
+    @Query("limit") limit?: string,
+    @Query("window") window?: string,
+  ): Promise<unknown> {
     try {
-      return await this.getLeaderboardUseCase.execute(parseLimit(limit, 10));
+      return await this.getLeaderboardUseCase.execute(
+        parseLimit(limit, 10),
+        window === "week" ? "week" : "24h",
+      );
     } catch (error) {
       throw mapGameError(error);
     }

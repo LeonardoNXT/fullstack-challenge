@@ -258,7 +258,7 @@ describe("Games application use cases", () => {
     clock.setNow(new Date("2026-05-26T00:00:12.000Z"));
     await new CrashRoundUseCase(repository, clock).execute();
 
-    const leaderboard = await new GetLeaderboardUseCase(repository).execute();
+    const leaderboard = await new GetLeaderboardUseCase(repository, clock).execute();
 
     expect(leaderboard).toHaveLength(2);
     expect(leaderboard[0]).toMatchObject({

@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Req, UseGuards } from "@nestjs/common";
+import { Controller, Get, Header, Post, Req, UseGuards } from "@nestjs/common";
 import { ApiBearerAuth, ApiTags } from "@nestjs/swagger";
 import {
   CreateWalletUseCase,
@@ -23,6 +23,20 @@ export class WalletsController {
   @Get("health")
   check(): HealthCheckResponseDto {
     return { status: "ok", service: "wallets" };
+  }
+
+  @Get("metrics")
+  @Header("content-type", "text/plain; version=0.0.4")
+  metrics(): string {
+    const memory = process.memoryUsage();
+    return [
+      "# HELP crash_wallets_process_uptime_seconds Process uptime in seconds.",
+      "# TYPE crash_wallets_process_uptime_seconds gauge",
+      `crash_wallets_process_uptime_seconds ${process.uptime().toFixed(0)}`,
+      "# HELP crash_wallets_heap_used_bytes Heap used in bytes.",
+      "# TYPE crash_wallets_heap_used_bytes gauge",
+      `crash_wallets_heap_used_bytes ${memory.heapUsed}`,
+    ].join("\n");
   }
 
   @Post()

@@ -1,5 +1,6 @@
 import type { Cents, PlayerId } from "@crash/contracts";
 import { makeCents } from "@crash/contracts";
+import type { Clock } from "../ports/clock";
 import type { RoundRepository } from "../ports/round.repository";
 
 export interface LeaderboardEntry {
@@ -10,6 +11,8 @@ export interface LeaderboardEntry {
   readonly payoutCents: Cents;
 }
 
+export type LeaderboardWindow = "24h" | "week";
+
 interface MutableLeaderboardEntry {
   playerId: PlayerId;
   username: string;
@@ -19,10 +22,16 @@ interface MutableLeaderboardEntry {
 }
 
 export class GetLeaderboardUseCase {
-  constructor(private readonly roundRepository: RoundRepository) {}
+  constructor(
+    private readonly roundRepository: RoundRepository,
+    private readonly clock: Clock = { now: () => new Date() },
+  ) {}
 
-  async execute(limit = 10): Promise<readonly LeaderboardEntry[]> {
-    const bets = await this.roundRepository.findAllBets(1000);
+  async execute(limit = 10, window: LeaderboardWindow = "24h"): Promise<readonly LeaderboardEntry[]> {
+    const bets = await this.roundRepository.findBetsSince(
+      windowStart(window, this.clock.now()),
+      5000,
+    );
     const entries = new Map<PlayerId, MutableLeaderboardEntry>();
 
     for (const bet of bets) {
@@ -56,4 +65,9 @@ export class GetLeaderboardUseCase {
         payoutCents: makeCents(entry.payoutCents),
       }));
   }
+}
+
+function windowStart(window: LeaderboardWindow, now: Date): Date {
+  const durationMs = window === "week" ? 7 * 24 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
+  return new Date(now.getTime() - durationMs);
 }
