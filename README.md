@@ -434,10 +434,18 @@ A stack sobe PostgreSQL, RabbitMQ, Keycloak, Kong, Games, Wallets e Frontend. O 
 
 ### Decisões e trade-offs
 
-- Persistência usa Prisma + PostgreSQL, com schemas separados para `games` e `wallets`.
-- Comunicação financeira entre Games e Wallets usa RabbitMQ com exchange direta `crash.wallet.v1`.
+- Persistência usa Prisma + PostgreSQL, com schemas e migrations separados para `games` e `wallets`.
+- Comunicação financeira entre Games e Wallets usa RabbitMQ com exchange direta `crash.wallet.v1`, outbox transacional para mensagens de saída e inbox persistente para deduplicação de mensagens de entrada.
+- O startup Docker roda migrations automaticamente. Em bancos locais antigos criados por `db push`, o script de migration faz baseline idempotente da primeira migration.
+- O usuário `player` / `player123` é importado pelo Keycloak com id fixo em instalações novas, e a migration de Wallets cria a carteira inicial desse jogador com saldo.
+- Auto cashout é suportado no backend por `autoCashoutMultiplierBps`; quando o scheduler atinge o alvo antes do crash, o Games liquida a aposta e enfileira o crédito da Wallet pela outbox.
+- Leaderboard está disponível em `GET /games/leaderboard?window=24h|week`, calculando lucro por janelas de 24h e 7 dias.
+- Rate limiting de ações financeiras do jogador roda no Games para `POST /bet` e `POST /bet/cashout`.
+- Observabilidade básica expõe `/metrics` em Games e Wallets com formato Prometheus text.
+- Seed determinística pode ser ativada com `GAME_DETERMINISTIC_SEED_PREFIX`, útil para cenários reproduzíveis de teste.
+- O CI em GitHub Actions roda geração Prisma, typecheck backend, unitários, testes/build do frontend e `docker compose config`.
 - O frontend usa Vite + React para reduzir risco de entrega, com TanStack Query, Zustand-ready structure, Socket.IO client e Tailwind CSS v4.
-- O escopo atual mira os requisitos eliminatórios. Bônus como outbox/inbox transacional, auto bet, Playwright, observabilidade, rate limiting e Storybook ficaram fora desta etapa.
+- Ainda ficam fora desta etapa: auto bet/Martingale, Playwright browser E2E, Storybook, sons e observabilidade completa com Grafana/OpenTelemetry.
 - Valores monetários continuam em centavos inteiros; não há aritmética de ponto flutuante para dinheiro.
 
 ### Testes
@@ -454,7 +462,7 @@ docker compose build games wallets frontend
 
 ### Smoke test validado
 
-Com `player` / `player123`, a stack Docker foi validada com:
+Com `player` / `player123`, o fluxo esperado da stack Docker é:
 
 - `GET /games/health` e `GET /wallets/health` via Kong retornando `200`.
 - Swagger direto de Games e Wallets retornando `200`.
