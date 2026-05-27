@@ -5,9 +5,10 @@
   "scripts": {
     "dev": "bun run --watch src/main.ts",
     "start": "bun run src/main.ts",
-    "start:docker": "bun run db:push && bun run start",
+    "start:docker": "bun run db:migrate && bun run start",
     "prisma:generate": "bun node_modules/prisma/build/index.js generate --schema prisma/schema.prisma",
     "db:push": "bun node_modules/prisma/build/index.js db push --schema prisma/schema.prisma --url \"$DATABASE_URL\"",
+    "db:migrate": "bun ../../scripts/prisma-migrate.ts",
     "test": "bun test tests/unit",
     "test:e2e": "bun test tests/e2e"
   },

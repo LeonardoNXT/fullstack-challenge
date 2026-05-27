@@ -30,3 +30,26 @@ model LedgerEntry {
   @@index([playerId, occurredAt])
   @@map("ledger_entries")
 }
+
+model ProcessedWalletCommand {
+  eventId     String   @id @map("event_id")
+  eventType   String   @map("event_type")
+  payload     Json
+  resultEvent Json      @map("result_event")
+  processedAt DateTime @default(now()) @map("processed_at")
+
+  @@map("processed_wallet_commands")
+}
+
+model OutboxMessage {
+  id          String    @id
+  type        String
+  payload     Json
+  createdAt   DateTime  @default(now()) @map("created_at")
+  publishedAt DateTime? @map("published_at")
+  attempts    Int       @default(0)
+  lastError   String?   @map("last_error")
+
+  @@index([publishedAt, createdAt])
+  @@map("outbox_messages")
+}
