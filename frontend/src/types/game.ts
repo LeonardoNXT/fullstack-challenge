@@ -8,8 +8,12 @@ export interface PublicBet {
   readonly username: string;
   readonly amountCents: number;
   readonly status: BetStatus;
+  readonly autoCashoutMultiplierBps?: number;
   readonly cashoutMultiplierBps?: number;
   readonly payoutCents?: number;
+  readonly placedAt?: string;
+  readonly settledAt?: string;
+  readonly rejectionReason?: string;
 }
 
 export interface PublicRound {
@@ -30,6 +34,35 @@ export interface Wallet {
   readonly playerId: string;
   readonly balanceCents: number;
 }
+
+export interface LeaderboardEntry {
+  readonly playerId: string;
+  readonly username: string;
+  readonly profitCents: number;
+  readonly wageredCents: number;
+  readonly payoutCents: number;
+}
+
+export interface FairVerification {
+  readonly roundId?: string;
+  readonly serverSeed: string;
+  readonly serverSeedHash: string;
+  readonly clientSeed: string;
+  readonly nonce: number;
+  readonly crashPointBps: number;
+  readonly validSeedHash: boolean;
+}
+
+export type RealtimeEventName =
+  | "round:betting-opened"
+  | "round:started"
+  | "round:tick"
+  | "round:crashed"
+  | "bet:placed"
+  | "bet:accepted"
+  | "bet:rejected"
+  | "bet:cashed-out"
+  | "wallet:updated";
 
 export interface RoundTick {
   readonly roundId: string;

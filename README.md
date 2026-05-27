@@ -444,7 +444,8 @@ A stack sobe PostgreSQL, RabbitMQ, Keycloak, Kong, Games, Wallets e Frontend. O 
 - Observabilidade básica expõe `/metrics` em Games e Wallets com formato Prometheus text.
 - Seed determinística pode ser ativada com `GAME_DETERMINISTIC_SEED_PREFIX`, útil para cenários reproduzíveis de teste.
 - O CI em GitHub Actions roda geração Prisma, typecheck backend, unitários, testes/build do frontend e `docker compose config`.
-- O frontend usa Vite + React para reduzir risco de entrega, com TanStack Query, Zustand-ready structure, Socket.IO client e Tailwind CSS v4.
+- O frontend usa TanStack Start + React + TypeScript, Tailwind CSS v4, shadcn/ui, TanStack Query, Zustand e Socket.IO client.
+- A UI cobre dashboard do crash, curva animada, betting/cashout, auto cashout, auto bet simples, historico, leaderboard 24h/semana e painel provably fair com formula da curva.
 - Ainda ficam fora desta etapa: auto bet/Martingale, Playwright browser E2E, Storybook, sons e observabilidade completa com Grafana/OpenTelemetry.
 - Valores monetários continuam em centavos inteiros; não há aritmética de ponto flutuante para dinheiro.
 
@@ -470,6 +471,7 @@ Com `player` / `player123`, o fluxo esperado da stack Docker é:
 - Wallet criada para o usuário autenticado.
 - Aposta criada em fase de betting, debitada via RabbitMQ e marcada como `accepted`.
 - Cashout executado durante fase running, creditado via RabbitMQ e refletido no saldo.
+- E2E de Wallet e Games rodam contra Kong/Keycloak/PostgreSQL/RabbitMQ reais.
 
 ---
 

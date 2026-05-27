@@ -1,0 +1,95 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+:root {
+  color-scheme: dark;
+  --background: 222 47% 5%;
+  --foreground: 210 40% 98%;
+  --card: 222 38% 8%;
+  --card-foreground: 210 40% 98%;
+  --popover: 222 38% 8%;
+  --popover-foreground: 210 40% 98%;
+  --primary: 166 84% 52%;
+  --primary-foreground: 222 47% 5%;
+  --secondary: 262 83% 68%;
+  --secondary-foreground: 210 40% 98%;
+  --muted: 221 28% 14%;
+  --muted-foreground: 215 20% 72%;
+  --accent: 338 91% 62%;
+  --accent-foreground: 210 40% 98%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 40% 98%;
+  --border: 217 24% 22%;
+  --input: 217 24% 18%;
+  --ring: 166 84% 52%;
+  --radius: 0.5rem;
+}
+
+@theme inline {
+  --color-background: hsl(var(--background));
+  --color-foreground: hsl(var(--foreground));
+  --color-card: hsl(var(--card));
+  --color-card-foreground: hsl(var(--card-foreground));
+  --color-popover: hsl(var(--popover));
+  --color-popover-foreground: hsl(var(--popover-foreground));
+  --color-primary: hsl(var(--primary));
+  --color-primary-foreground: hsl(var(--primary-foreground));
+  --color-secondary: hsl(var(--secondary));
+  --color-secondary-foreground: hsl(var(--secondary-foreground));
+  --color-muted: hsl(var(--muted));
+  --color-muted-foreground: hsl(var(--muted-foreground));
+  --color-accent: hsl(var(--accent));
+  --color-accent-foreground: hsl(var(--accent-foreground));
+  --color-destructive: hsl(var(--destructive));
+  --color-destructive-foreground: hsl(var(--destructive-foreground));
+  --color-border: hsl(var(--border));
+  --color-input: hsl(var(--input));
+  --color-ring: hsl(var(--ring));
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background:
+    radial-gradient(circle at 20% 0%, rgb(20 184 166 / 0.18), transparent 34rem),
+    radial-gradient(circle at 80% 12%, rgb(244 63 94 / 0.14), transparent 30rem),
+    linear-gradient(135deg, #050816 0%, #090f1d 45%, #0d1224 100%);
+  color: hsl(var(--foreground));
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+.casino-grid {
+  background-image:
+    linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
+  background-size: 34px 34px;
+}
+
+.neon-text {
+  text-shadow: 0 0 24px rgb(45 212 191 / 0.42);
+}
+
+.crash-line {
+  filter: drop-shadow(0 0 14px rgb(45 212 191 / 0.75));
+}
