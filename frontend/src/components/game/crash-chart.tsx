@@ -2,11 +2,12 @@ import { useMemo } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { useSmoothMultiplier } from "@/hooks/use-smooth-multiplier";
 import type { PublicRound } from "@/types/game";
 import { formatMultiplier, formatTimeLeft, shortId } from "@/utils/format";
 
 export function CrashChart({ round }: { readonly round: PublicRound | null }) {
-  const multiplier = round?.currentMultiplierBps ?? 10000;
+  const multiplier = useSmoothMultiplier();
   const progress = round?.phase === "betting"
     ? bettingProgress(round)
     : Math.min(100, Math.max(8, ((multiplier - 10000) / 40000) * 100));

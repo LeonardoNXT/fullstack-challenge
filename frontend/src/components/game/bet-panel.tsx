@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useSmoothMultiplier } from "@/hooks/use-smooth-multiplier";
 import { queryKeys, cashOut, placeBet } from "@/services/game";
 import type { PlayerProfile } from "@/types/auth";
 import type { PublicBet, PublicRound, Wallet } from "@/types/game";
@@ -37,11 +38,12 @@ export function BetPanel({
     () => Math.round(Number(autoCashout.replace(",", ".")) * 10000),
     [autoCashout],
   );
+  const multiplier = useSmoothMultiplier();
   const allowedBet = canPlaceBet({ round, playerBet, wallet, amountCents });
   const allowedCashout = canCashOut({ round, playerBet });
   const projected = playerBet === null
-    ? projectedPayoutCents(amountCents || 0, round?.currentMultiplierBps ?? 10000)
-    : projectedPayoutCents(playerBet.amountCents, round?.currentMultiplierBps ?? 10000);
+    ? projectedPayoutCents(amountCents || 0, multiplier)
+    : projectedPayoutCents(playerBet.amountCents, multiplier);
 
   const placeBetMutation = useMutation({
     mutationFn: () => {

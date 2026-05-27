@@ -14,7 +14,7 @@ export function useGameRealtime(): void {
   const upsertBet = useGameStore((state) => state.upsertBet);
 
   useEffect(() => {
-    const socket = io(`${env.wsBaseUrl}/games`, {
+    const socket = io(env.wsBaseUrl, {
       path: "/games/socket.io",
       transports: ["websocket", "polling"],
     });
