@@ -8,7 +8,7 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     super({
       adapter: new PrismaPg({
         connectionString:
-          process.env.DATABASE_URL ?? "postgresql://admin:admin@localhost:5433/wallets",
+          process.env.DATABASE_URL ?? "postgresql://admin:admin@localhost:5432/wallets",
       }),
     });
   }

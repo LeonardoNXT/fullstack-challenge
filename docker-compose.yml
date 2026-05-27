@@ -5,7 +5,7 @@ services:
   postgres:
     image: postgres:18.3-alpine
     ports:
-      - "5433:5432"
+      - "5432:5432"
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
@@ -89,6 +89,10 @@ services:
         condition: service_healthy
       rabbitmq:
         condition: service_healthy
+      games:
+        condition: service_healthy
+      wallets:
+        condition: service_healthy
 
   # ---------------------------------------------------------------------------
   # Games Service
@@ -166,6 +170,7 @@ services:
       VITE_WS_BASE_URL: http://localhost:8000
       VITE_KEYCLOAK_AUTHORITY: http://localhost:8080/realms/crash-game
       VITE_KEYCLOAK_CLIENT_ID: crash-game-client
+      VITE_GAME_TITLE: Jungle Crash
     depends_on:
       kong:
         condition: service_healthy

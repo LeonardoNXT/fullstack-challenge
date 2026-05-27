@@ -5,6 +5,14 @@ CREATE TABLE IF NOT EXISTS "wallets" (
   "updated_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
+ALTER TABLE "wallets"
+  ALTER COLUMN "created_at" SET DEFAULT CURRENT_TIMESTAMP,
+  ALTER COLUMN "updated_at" SET DEFAULT CURRENT_TIMESTAMP;
+
+UPDATE "wallets"
+SET "updated_at" = COALESCE("updated_at", "created_at", CURRENT_TIMESTAMP)
+WHERE "updated_at" IS NULL;
+
 CREATE TABLE IF NOT EXISTS "ledger_entries" (
   "operation_id" TEXT PRIMARY KEY,
   "player_id" TEXT NOT NULL,
@@ -42,6 +50,11 @@ CREATE INDEX IF NOT EXISTS "ledger_entries_player_id_occurred_at_idx"
 CREATE INDEX IF NOT EXISTS "outbox_messages_published_at_created_at_idx"
   ON "outbox_messages"("published_at", "created_at");
 
-INSERT INTO "wallets" ("player_id", "balance_cents")
-VALUES ('11111111-1111-4111-8111-111111111111', 100000)
+INSERT INTO "wallets" ("player_id", "balance_cents", "created_at", "updated_at")
+VALUES (
+  '11111111-1111-4111-8111-111111111111',
+  100000,
+  CURRENT_TIMESTAMP,
+  CURRENT_TIMESTAMP
+)
 ON CONFLICT ("player_id") DO NOTHING;

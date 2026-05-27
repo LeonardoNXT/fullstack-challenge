@@ -51,7 +51,7 @@ describe("Gameplay API e2e", () => {
       headers: { authorization: `Bearer ${token}` },
     });
     expect([201, 409]).toContain(cashout.status);
-  });
+  }, 60_000);
 
   test("rejects duplicate bet and bet outside betting phase through HTTP", async () => {
     const token = await getPlayerToken();
@@ -88,7 +88,7 @@ describe("Gameplay API e2e", () => {
       body: JSON.stringify({ amountCents: 100 }),
     });
     expect(outsideBetting.status).toBe(409);
-  });
+  }, 60_000);
 
   test("exposes provably fair verification for a settled round", async () => {
     const history = await waitForHistory(45_000);
@@ -107,7 +107,7 @@ describe("Gameplay API e2e", () => {
     expect(verification.serverSeedHash.length).toBeGreaterThan(0);
     expect(verification.crashPointBps).toBeGreaterThanOrEqual(10000);
     expect(verification.validSeedHash).toBe(true);
-  });
+  }, 60_000);
 });
 
 async function getPlayerToken(): Promise<string> {
