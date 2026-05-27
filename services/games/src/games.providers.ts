@@ -28,7 +28,8 @@ import {
 import { ProvablyFairService } from "./domain";
 import {
   CryptoSeedGenerator,
-  InMemoryProcessedWalletEventStore,
+  GamesOutboxPublisherService,
+  PrismaProcessedWalletEventStore,
   RabbitmqWalletCommandPublisher,
   RabbitmqWalletEventConsumer,
   SystemClock,
@@ -51,7 +52,9 @@ export const WALLET_COMMAND_PUBLISHER = Symbol("WALLET_COMMAND_PUBLISHER");
 
 export const gameProviders = [
   PrismaService,
+  RabbitmqWalletCommandPublisher,
   RabbitmqWalletEventConsumer,
+  GamesOutboxPublisherService,
   {
     provide: ROUND_REPOSITORY,
     useFactory: (prisma: PrismaService): RoundRepository =>
@@ -64,9 +67,9 @@ export const gameProviders = [
   { provide: MESSAGE_ID_GENERATOR, useClass: UuidMessageIdGenerator },
   {
     provide: PROCESSED_WALLET_EVENT_STORE,
-    useClass: InMemoryProcessedWalletEventStore,
+    useClass: PrismaProcessedWalletEventStore,
   },
-  { provide: WALLET_COMMAND_PUBLISHER, useClass: RabbitmqWalletCommandPublisher },
+  { provide: WALLET_COMMAND_PUBLISHER, useExisting: RabbitmqWalletCommandPublisher },
   { provide: ProvablyFairService, useClass: ProvablyFairService },
   { provide: RealtimeEventFactory, useClass: RealtimeEventFactory },
   { provide: WalletCommandFactory, useClass: WalletCommandFactory },
@@ -188,9 +191,9 @@ export const gameProviders = [
   },
   {
     provide: GetLeaderboardUseCase,
-    useFactory: (roundRepository: RoundRepository): GetLeaderboardUseCase =>
-      new GetLeaderboardUseCase(roundRepository),
-    inject: [ROUND_REPOSITORY],
+    useFactory: (roundRepository: RoundRepository, clock: Clock): GetLeaderboardUseCase =>
+      new GetLeaderboardUseCase(roundRepository, clock),
+    inject: [ROUND_REPOSITORY, CLOCK],
   },
   {
     provide: AcceptBetDebitUseCase,
@@ -214,6 +217,8 @@ export const gameProviders = [
       processedWalletEventStore: ProcessedWalletEventStore,
       realtimeEventBus: RealtimeEventBus,
       realtimeEventFactory: RealtimeEventFactory,
+      roundRepository: RoundRepository,
+      clock: Clock,
     ): HandleWalletEventUseCase =>
       new HandleWalletEventUseCase(
         acceptBetDebitUseCase,
@@ -221,6 +226,8 @@ export const gameProviders = [
         processedWalletEventStore,
         realtimeEventBus,
         realtimeEventFactory,
+        roundRepository,
+        clock,
       ),
     inject: [
       AcceptBetDebitUseCase,
@@ -228,6 +235,8 @@ export const gameProviders = [
       PROCESSED_WALLET_EVENT_STORE,
       REALTIME_EVENT_BUS,
       RealtimeEventFactory,
+      ROUND_REPOSITORY,
+      CLOCK,
     ],
   },
   {
@@ -238,6 +247,8 @@ export const gameProviders = [
       openRoundUseCase: OpenRoundUseCase,
       realtimeEventBus: RealtimeEventBus,
       realtimeEventFactory: RealtimeEventFactory,
+      walletCommandFactory: WalletCommandFactory,
+      messageIdGenerator: MessageIdGenerator,
     ): TickRoundEngineUseCase =>
       new TickRoundEngineUseCase(
         roundRepository,
@@ -245,8 +256,18 @@ export const gameProviders = [
         openRoundUseCase,
         realtimeEventBus,
         realtimeEventFactory,
+        walletCommandFactory,
+        messageIdGenerator,
       ),
-    inject: [ROUND_REPOSITORY, CLOCK, OpenRoundUseCase, REALTIME_EVENT_BUS, RealtimeEventFactory],
+    inject: [
+      ROUND_REPOSITORY,
+      CLOCK,
+      OpenRoundUseCase,
+      REALTIME_EVENT_BUS,
+      RealtimeEventFactory,
+      WalletCommandFactory,
+      MESSAGE_ID_GENERATOR,
+    ],
   },
 ];
 

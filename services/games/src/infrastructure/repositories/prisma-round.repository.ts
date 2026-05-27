@@ -1,4 +1,5 @@
 import {
+  WALLET_ROUTING_KEYS,
   asBetId,
   asPlayerId,
   asRoundId,
@@ -8,9 +9,12 @@ import {
   type PlayerId,
   type RoundId,
   type RoundPhase,
+  type WalletCommand,
+  type WalletEvent,
 } from "@crash/contracts";
-import type { RoundRepository } from "../../application";
+import { GameApplicationError, type RoundRepository } from "../../application";
 import { Round, type BetSnapshot, type RoundSnapshot } from "../../domain";
+import type { Prisma } from "../prisma/generated";
 import { PrismaService } from "../prisma/prisma.service";
 
 type RoundRecord = Awaited<ReturnType<PrismaService["round"]["findUnique"]>>;
@@ -86,23 +90,116 @@ export class PrismaRoundRepository implements RoundRepository {
     return bets.map((bet) => this.toBetSnapshot(bet));
   }
 
+  async findBetsSince(since: Date, limit: number): Promise<readonly BetSnapshot[]> {
+    const bets = await this.prisma.bet.findMany({
+      where: { placedAt: { gte: since } },
+      orderBy: { placedAt: "desc" },
+      take: limit,
+    });
+
+    return bets.map((bet) => this.toBetSnapshot(bet));
+  }
+
   async save(round: Round): Promise<void> {
+    await this.saveWithOutbox(round, []);
+  }
+
+  async saveWithOutbox(round: Round, commands: readonly WalletCommand[]): Promise<void> {
     const snapshot = round.toSnapshot();
 
     await this.prisma.$transaction(async (tx) => {
-      await tx.round.upsert({
-        where: { roundId: snapshot.roundId },
-        create: this.toRoundRecord(snapshot),
-        update: this.toRoundRecord(snapshot),
-      });
+      await this.persistRoundSnapshot(tx, snapshot);
 
-      await tx.bet.deleteMany({ where: { roundId: snapshot.roundId } });
-
-      if (snapshot.bets.length > 0) {
-        await tx.bet.createMany({
-          data: snapshot.bets.map((bet) => this.toBetRecord(bet)),
+      if (commands.length > 0) {
+        await tx.outboxMessage.createMany({
+          data: commands.map((command) => ({
+            id: command.eventId,
+            type: command.type,
+            payload: command as never,
+          })),
+          skipDuplicates: true,
         });
       }
+    });
+  }
+
+  async processWalletEventWithInbox(
+    event: WalletEvent,
+    now: Date,
+  ): Promise<{ readonly handled: boolean; readonly duplicate: boolean; readonly bet?: BetSnapshot }> {
+    return this.prisma.$transaction(async (tx) => {
+      const existing = await tx.processedWalletEvent.findUnique({
+        where: { eventId: event.eventId },
+        select: { eventId: true },
+      });
+      if (existing !== null) {
+        return { handled: false, duplicate: true };
+      }
+
+      if (
+        event.type === WALLET_ROUTING_KEYS.cashoutCredited ||
+        event.type === WALLET_ROUTING_KEYS.cashoutCreditRejected ||
+        event.type === WALLET_ROUTING_KEYS.betRefunded
+      ) {
+        await this.recordProcessedWalletEvent(tx, event);
+        return { handled: true, duplicate: false };
+      }
+
+      const roundRecord = await tx.round.findUnique({
+        where: { roundId: event.payload.roundId },
+        include: { bets: { orderBy: { placedAt: "asc" } } },
+      });
+      if (roundRecord === null) {
+        throw new GameApplicationError("ROUND_NOT_FOUND");
+      }
+
+      const round = Round.rehydrate(this.toRoundSnapshot(roundRecord));
+      const existingBet = round.bets.find((bet) => bet.betId === event.payload.betId);
+      const bet =
+        event.type === WALLET_ROUTING_KEYS.betDebited
+          ? existingBet?.status === "accepted"
+            ? existingBet
+            : round.acceptBet(event.payload.betId)
+          : existingBet?.status === "rejected"
+            ? existingBet
+            : round.rejectBet(event.payload.betId, event.payload.reason, now);
+
+      await this.persistRoundSnapshot(tx, round.toSnapshot());
+      await this.recordProcessedWalletEvent(tx, event);
+
+      return { handled: true, duplicate: false, bet: bet.toSnapshot() };
+    });
+  }
+
+  private async persistRoundSnapshot(
+    tx: Prisma.TransactionClient,
+    snapshot: RoundSnapshot,
+  ): Promise<void> {
+    await tx.round.upsert({
+      where: { roundId: snapshot.roundId },
+      create: this.toRoundRecord(snapshot),
+      update: this.toRoundRecord(snapshot),
+    });
+
+    await tx.bet.deleteMany({ where: { roundId: snapshot.roundId } });
+
+    if (snapshot.bets.length > 0) {
+      await tx.bet.createMany({
+        data: snapshot.bets.map((bet) => this.toBetRecord(bet)),
+      });
+    }
+  }
+
+  private async recordProcessedWalletEvent(
+    tx: Prisma.TransactionClient,
+    event: WalletEvent,
+  ): Promise<void> {
+    await tx.processedWalletEvent.create({
+      data: {
+        eventId: event.eventId,
+        eventType: event.type,
+        payload: event as never,
+      },
     });
   }
 

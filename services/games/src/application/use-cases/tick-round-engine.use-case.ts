@@ -1,10 +1,12 @@
-import type { PublicRound } from "@crash/contracts";
+import type { PublicRound, WalletCommand } from "@crash/contracts";
 import type { BetSnapshot } from "../../domain";
 import { toPublicRound } from "../dtos/game-round-view";
 import type { Clock } from "../ports/clock";
 import type { RealtimeEventBus } from "../ports/realtime-event-bus";
 import type { RoundRepository } from "../ports/round.repository";
+import type { MessageIdGenerator } from "../ports/message-id-generator";
 import { RealtimeEventFactory } from "../services/realtime-event-factory";
+import type { WalletCommandFactory } from "../services/wallet-command-factory";
 import { OpenRoundUseCase, type OpenRoundInput } from "./open-round.use-case";
 
 export type RoundEngineAction =
@@ -31,6 +33,8 @@ export class TickRoundEngineUseCase {
     private readonly openRoundUseCase: OpenRoundUseCase,
     private readonly realtimeEventBus?: RealtimeEventBus,
     private readonly realtimeEventFactory = new RealtimeEventFactory(),
+    private readonly walletCommandFactory?: WalletCommandFactory,
+    private readonly messageIdGenerator?: MessageIdGenerator,
   ) {}
 
   async execute(input: TickRoundEngineInput): Promise<TickRoundEngineOutput> {
@@ -73,7 +77,15 @@ export class TickRoundEngineUseCase {
       }
 
       if (actions.length > 0) {
-        await this.roundRepository.save(currentRound);
+        const commands = this.createAutoCashoutCommands(
+          autoCashedOut.map((bet) => bet.toSnapshot()),
+          now,
+        );
+        if (commands.length > 0 && this.roundRepository.saveWithOutbox !== undefined) {
+          await this.roundRepository.saveWithOutbox(currentRound, commands);
+        } else {
+          await this.roundRepository.save(currentRound);
+        }
       }
 
       return this.publish({
@@ -109,6 +121,26 @@ export class TickRoundEngineUseCase {
 
     const opened = await this.openRoundUseCase.execute(input);
     return this.publish({ actions: ["opened"], round: opened, autoCashedOutBets: [] });
+  }
+
+  private createAutoCashoutCommands(
+    bets: readonly BetSnapshot[],
+    occurredAt: Date,
+  ): readonly WalletCommand[] {
+    if (
+      this.walletCommandFactory === undefined ||
+      this.messageIdGenerator === undefined
+    ) {
+      return [];
+    }
+
+    return bets.map((bet) =>
+      this.walletCommandFactory!.cashoutCreditRequested(bet, {
+        eventId: this.messageIdGenerator!.nextEventId(),
+        correlationId: this.messageIdGenerator!.nextCorrelationId(),
+        occurredAt,
+      }),
+    );
   }
 
   private async publish(output: TickRoundEngineOutput): Promise<TickRoundEngineOutput> {

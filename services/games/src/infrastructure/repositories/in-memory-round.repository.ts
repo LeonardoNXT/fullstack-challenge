@@ -48,6 +48,13 @@ export class InMemoryRoundRepository implements RoundRepository {
     return this.getAllBets().slice(-limit).reverse();
   }
 
+  async findBetsSince(since: Date, limit: number): Promise<readonly BetSnapshot[]> {
+    return this.getAllBets()
+      .filter((bet) => bet.placedAt >= since)
+      .sort((left, right) => right.placedAt.getTime() - left.placedAt.getTime())
+      .slice(0, limit);
+  }
+
   async save(round: Round): Promise<void> {
     if (!this.roundsById.has(round.roundId)) {
       this.insertionOrder.push(round.roundId);

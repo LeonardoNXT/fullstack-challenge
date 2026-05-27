@@ -22,6 +22,11 @@ export class AcceptBetDebitUseCase {
       throw new GameApplicationError("ROUND_NOT_FOUND");
     }
 
+    const existingBet = round.bets.find((bet) => bet.betId === input.betId);
+    if (existingBet?.status === "accepted") {
+      return existingBet.toSnapshot();
+    }
+
     const bet = round.acceptBet(input.betId);
     await this.roundRepository.save(round);
     return bet.toSnapshot();
@@ -38,6 +43,11 @@ export class RejectBetDebitUseCase {
     const round = await this.roundRepository.findById(input.roundId);
     if (round === null) {
       throw new GameApplicationError("ROUND_NOT_FOUND");
+    }
+
+    const existingBet = round.bets.find((bet) => bet.betId === input.betId);
+    if (existingBet?.status === "rejected") {
+      return existingBet.toSnapshot();
     }
 
     const bet = round.rejectBet(input.betId, input.reason, this.clock.now());

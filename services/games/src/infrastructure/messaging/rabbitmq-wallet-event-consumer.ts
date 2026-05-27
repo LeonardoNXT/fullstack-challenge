@@ -33,7 +33,7 @@ export class RabbitmqWalletEventConsumer implements OnModuleInit, OnModuleDestro
       await this.channel.bindQueue(GAME_WALLET_EVENT_QUEUE, WALLET_EXCHANGE, routingKey);
     }
 
-    await this.channel.prefetch(10);
+    await this.channel.prefetch(1);
     await this.channel.consume(GAME_WALLET_EVENT_QUEUE, (message) => {
       void this.handleMessage(message);
     });

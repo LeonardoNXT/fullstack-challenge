@@ -1,4 +1,4 @@
-import type { Cents, MultiplierBps, PlayerId } from "@crash/contracts";
+import type { Cents, MultiplierBps, PlayerId, WalletCommand } from "@crash/contracts";
 import type { BetSnapshot } from "../../domain";
 import { GameApplicationError } from "../errors/game-application.error";
 import type { Clock } from "../ports/clock";
@@ -39,23 +39,35 @@ export class PlaceBetUseCase {
       placedAt: this.clock.now(),
       autoCashoutMultiplierBps: input.autoCashoutMultiplierBps,
     });
-    await this.roundRepository.save(round);
     const snapshot = bet.toSnapshot();
+    const command = this.createDebitCommand(snapshot);
 
-    if (
-      this.walletCommandPublisher !== undefined &&
-      this.walletCommandFactory !== undefined &&
-      this.messageIdGenerator !== undefined
-    ) {
-      await this.walletCommandPublisher.publish(
-        this.walletCommandFactory.betDebitRequested(snapshot, {
-          eventId: this.messageIdGenerator.nextEventId(),
-          correlationId: this.messageIdGenerator.nextCorrelationId(),
-          occurredAt: this.clock.now(),
-        }),
-      );
+    if (command !== undefined && this.roundRepository.saveWithOutbox !== undefined) {
+      await this.roundRepository.saveWithOutbox(round, [command]);
+      return snapshot;
+    }
+
+    await this.roundRepository.save(round);
+
+    if (command !== undefined) {
+      await this.walletCommandPublisher?.publish(command);
     }
 
     return snapshot;
+  }
+
+  private createDebitCommand(bet: BetSnapshot): WalletCommand | undefined {
+    if (
+      this.walletCommandFactory === undefined ||
+      this.messageIdGenerator === undefined
+    ) {
+      return undefined;
+    }
+
+    return this.walletCommandFactory.betDebitRequested(bet, {
+      eventId: this.messageIdGenerator.nextEventId(),
+      correlationId: this.messageIdGenerator.nextCorrelationId(),
+      occurredAt: this.clock.now(),
+    });
   }
 }

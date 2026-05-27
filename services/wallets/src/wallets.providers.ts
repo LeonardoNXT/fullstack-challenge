@@ -10,13 +10,14 @@ import {
   HandleWalletCommandUseCase,
   WalletEventFactory,
   type MessageIdGenerator,
-  type WalletEventPublisher,
   type WalletRepository,
 } from "./application";
 import {
+  PrismaWalletCommandHandler,
   RabbitmqWalletCommandConsumer,
   RabbitmqWalletEventPublisher,
   UuidMessageIdGenerator,
+  WalletsOutboxPublisherService,
 } from "./infrastructure";
 import { PrismaService } from "./infrastructure/prisma/prisma.service";
 import { PrismaWalletRepository } from "./infrastructure/repositories/prisma-wallet.repository";
@@ -28,6 +29,8 @@ export const WALLET_EVENT_PUBLISHER = Symbol("WALLET_EVENT_PUBLISHER");
 
 export const walletProviders = [
   PrismaService,
+  RabbitmqWalletEventPublisher,
+  WalletsOutboxPublisherService,
   RabbitmqWalletCommandConsumer,
   {
     provide: WALLET_REPOSITORY,
@@ -41,7 +44,7 @@ export const walletProviders = [
   },
   {
     provide: WALLET_EVENT_PUBLISHER,
-    useClass: RabbitmqWalletEventPublisher,
+    useExisting: RabbitmqWalletEventPublisher,
   },
   {
     provide: WalletEventFactory,
@@ -79,26 +82,16 @@ export const walletProviders = [
   {
     provide: HandleWalletCommandUseCase,
     useFactory: (
-      debitWalletUseCase: DebitWalletUseCase,
-      creditWalletUseCase: CreditWalletUseCase,
+      prisma: PrismaService,
       eventFactory: WalletEventFactory,
       messageIdGenerator: MessageIdGenerator,
-      walletEventPublisher: WalletEventPublisher,
     ): HandleWalletCommandUseCase =>
-      new HandleWalletCommandUseCase(
-        debitWalletUseCase,
-        creditWalletUseCase,
+      new PrismaWalletCommandHandler(
+        prisma,
         eventFactory,
         messageIdGenerator,
-        walletEventPublisher,
-      ),
-    inject: [
-      DebitWalletUseCase,
-      CreditWalletUseCase,
-      WalletEventFactory,
-      MESSAGE_ID_GENERATOR,
-      WALLET_EVENT_PUBLISHER,
-    ],
+      ) as unknown as HandleWalletCommandUseCase,
+    inject: [PrismaService, WalletEventFactory, MESSAGE_ID_GENERATOR],
   },
 ];
 

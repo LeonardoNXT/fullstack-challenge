@@ -4,6 +4,8 @@ export * from "./adapters/uuid-id-generator";
 export * from "./adapters/uuid-message-id-generator";
 export * from "./messaging/in-memory-processed-wallet-event-store";
 export * from "./messaging/in-memory-wallet-command-publisher";
+export * from "./messaging/games-outbox-publisher.service";
+export * from "./messaging/prisma-processed-wallet-event-store";
 export * from "./messaging/rabbitmq-wallet-command-publisher";
 export * from "./messaging/rabbitmq-wallet-event-consumer";
 export * from "./realtime/in-memory-realtime-event-bus";

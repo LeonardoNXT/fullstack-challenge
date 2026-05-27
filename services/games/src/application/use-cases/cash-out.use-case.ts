@@ -1,4 +1,5 @@
-import type { PlayerId } from "@crash/contracts";
+import type { PlayerId, WalletCommand } from "@crash/contracts";
+import type { BetSnapshot } from "../../domain";
 import { GameApplicationError } from "../errors/game-application.error";
 import { type CashoutResultView, toPublicRound } from "../dtos/game-round-view";
 import type { Clock } from "../ports/clock";
@@ -24,21 +25,23 @@ export class CashOutUseCase {
 
     const now = this.clock.now();
     const result = round.cashOut(playerId, now);
-    await this.roundRepository.save(round);
     const snapshot = result.bet.toSnapshot();
+    const command = this.createCreditCommand(snapshot, now);
 
-    if (
-      this.walletCommandPublisher !== undefined &&
-      this.walletCommandFactory !== undefined &&
-      this.messageIdGenerator !== undefined
-    ) {
-      await this.walletCommandPublisher.publish(
-        this.walletCommandFactory.cashoutCreditRequested(snapshot, {
-          eventId: this.messageIdGenerator.nextEventId(),
-          correlationId: this.messageIdGenerator.nextCorrelationId(),
-          occurredAt: now,
-        }),
-      );
+    if (command !== undefined && this.roundRepository.saveWithOutbox !== undefined) {
+      await this.roundRepository.saveWithOutbox(round, [command]);
+      return {
+        round: toPublicRound(round, now),
+        payoutCents: result.payoutCents,
+        multiplierBps: snapshot.cashoutMultiplierBps ?? round.currentMultiplierAt(now),
+        bet: snapshot,
+      };
+    }
+
+    await this.roundRepository.save(round);
+
+    if (command !== undefined) {
+      await this.walletCommandPublisher?.publish(command);
     }
 
     return {
@@ -47,5 +50,20 @@ export class CashOutUseCase {
       multiplierBps: snapshot.cashoutMultiplierBps ?? round.currentMultiplierAt(now),
       bet: snapshot,
     };
+  }
+
+  private createCreditCommand(bet: BetSnapshot, occurredAt: Date): WalletCommand | undefined {
+    if (
+      this.walletCommandFactory === undefined ||
+      this.messageIdGenerator === undefined
+    ) {
+      return undefined;
+    }
+
+    return this.walletCommandFactory.cashoutCreditRequested(bet, {
+      eventId: this.messageIdGenerator.nextEventId(),
+      correlationId: this.messageIdGenerator.nextCorrelationId(),
+      occurredAt,
+    });
   }
 }
