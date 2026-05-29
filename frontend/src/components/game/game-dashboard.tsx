@@ -57,7 +57,7 @@ export function GameDashboard() {
   );
 
   return (
-    <main className="mx-auto grid max-w-[1480px] gap-4 px-4 py-4 lg:grid-cols-[minmax(0,1fr)_390px] lg:px-6">
+    <main className="mx-auto grid max-w-[1480px] gap-4 px-4 pb-6 pt-4 lg:grid-cols-[minmax(0,1fr)_390px] lg:px-6 xl:pl-[150px]">
       <section className="space-y-4">
         {currentRound.isLoading && round === null ? (
           <Skeleton className="h-[430px] w-full" />
@@ -75,7 +75,7 @@ export function GameDashboard() {
 
       <aside className="space-y-4">
         {auth.player === null ? (
-          <div className="rounded-lg border bg-card/86 p-5">
+          <div className="glass-card rounded-lg p-5">
             <p className="text-lg font-semibold">Entre para jogar</p>
             <p className="mt-1 text-sm text-muted-foreground">
               O estado da rodada e o historico sao publicos. Aposta e cashout exigem login.

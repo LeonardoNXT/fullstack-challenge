@@ -57,7 +57,7 @@ export function ProvablyFairPanel() {
               label="Hash valida"
               value={verification.data.validSeedHash ? "sim" : "nao"}
             />
-            <div className="rounded-md border bg-muted/25 p-3 text-xs text-muted-foreground">
+            <div className="data-row rounded-md border border-white/10 p-3 text-xs text-muted-foreground">
               formula: multiplier(t) = 1.00x + floor(elapsedMs * growthBpsPerSecond / 1000) / 10000, limitada pelo crashPointBps.
             </div>
           </div>
@@ -69,7 +69,7 @@ export function ProvablyFairPanel() {
 
 function Fact({ label, value }: { readonly label: string; readonly value: string }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-md border bg-muted/25 px-3 py-2">
+    <div className="data-row flex items-center justify-between gap-3 rounded-md border border-white/10 px-3 py-2">
       <span className="text-muted-foreground">{label}</span>
       <span className="text-right font-medium">{value}</span>
     </div>

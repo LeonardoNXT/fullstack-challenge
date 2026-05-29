@@ -16,6 +16,30 @@ Next recommended implementation step:
 
 - Start with `specs/infra.md` and fix Docker env/bootstrap so `docker compose config` and `bun run docker:up` can succeed.
 
+## 2026-05-27 - Frontend Spec Review And Neon Rebrand
+
+Reviewed the current frontend against `README.md`, `.ai/specs/frontend.md`, `.ai/specs/ui-system.md`, `.ai/specs/dashboard.md`, and `.ai/specs/bonus-differentials.md`.
+
+Findings:
+
+- Required frontend scope is present: Keycloak login, wallet state, betting, cashout, current round, round history, current bets, WebSocket synchronization, loading skeletons, error toasts, responsive dark UI, and Docker-ready build scripts.
+- Implemented frontend bonus items include leaderboard, auto cashout input, simple fixed-value auto bet, and formula display in the provably fair panel.
+- Intentional remaining frontend bonuses: audio/sound effects are excluded by product direction; Storybook and Playwright browser E2E remain outside this visual pass.
+- Main gap was visual quality versus the desired casino reference: the previous theme was generic and the top shell had unfinished utility classes.
+
+Changed:
+
+- Reworked the frontend visual system to a black glass/neon lime casino style inspired by the provided reference.
+- Added a centered player HUD, left decorative discovery rail, sharper glass cards, neon chart styling, denser history tiles, and stronger data rows.
+- Swapped the chart from SVG styling to the existing canvas-based crash graph with lime glow and runtime animation.
+- Added `frontend/public/brand/crash-background.png` as the replaceable background slot and documented it in `frontend/public/brand/README.md`.
+
+Validation:
+
+- `cd frontend && bun run lint` passed.
+- `cd frontend && bun test` passed.
+- `cd frontend && bun run build` passed.
+
 ## 2026-05-25 - Compose Env Bootstrap
 
 Implemented the first infrastructure fix from `specs/infra.md`.

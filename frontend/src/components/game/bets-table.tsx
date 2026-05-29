@@ -12,8 +12,8 @@ export function BetsTable({ bets }: { readonly bets: readonly PublicBet[] }) {
       <CardContent>
         <div className="max-h-[340px] overflow-auto">
           <table className="w-full text-sm">
-            <thead className="sticky top-0 bg-card text-xs text-muted-foreground">
-              <tr className="border-b">
+            <thead className="sticky top-0 text-xs text-muted-foreground backdrop-blur">
+              <tr className="border-b border-white/10">
                 <th className="py-2 text-left font-medium">Jogador</th>
                 <th className="py-2 text-right font-medium">Valor</th>
                 <th className="py-2 text-right font-medium">Status</th>
@@ -22,13 +22,19 @@ export function BetsTable({ bets }: { readonly bets: readonly PublicBet[] }) {
             <tbody>
               {bets.length === 0 ? (
                 <tr>
-                  <td className="py-8 text-center text-muted-foreground" colSpan={3}>
+                  <td
+                    className="py-8 text-center text-muted-foreground"
+                    colSpan={3}
+                  >
                     Nenhuma aposta nesta rodada.
                   </td>
                 </tr>
               ) : (
                 bets.map((bet) => (
-                  <tr key={bet.betId} className="border-b border-border/70">
+                  <tr
+                    key={bet.betId}
+                    className="border-b border-white/[0.08] transition hover:bg-white/[0.04]"
+                  >
                     <td className="py-3">
                       <p className="font-medium">{bet.username}</p>
                       {bet.cashoutMultiplierBps !== undefined ? (
@@ -37,9 +43,13 @@ export function BetsTable({ bets }: { readonly bets: readonly PublicBet[] }) {
                         </p>
                       ) : null}
                     </td>
-                    <td className="py-3 text-right">{formatCents(bet.amountCents)}</td>
                     <td className="py-3 text-right">
-                      <Badge variant={badgeVariant(bet.status)}>{bet.status}</Badge>
+                      {formatCents(bet.amountCents)}
+                    </td>
+                    <td className="py-3 text-right">
+                      <Badge variant={badgeVariant(bet.status)}>
+                        {bet.status}
+                      </Badge>
                     </td>
                   </tr>
                 ))
@@ -52,7 +62,9 @@ export function BetsTable({ bets }: { readonly bets: readonly PublicBet[] }) {
   );
 }
 
-function badgeVariant(status: PublicBet["status"]): "default" | "secondary" | "danger" | "muted" {
+function badgeVariant(
+  status: PublicBet["status"],
+): "default" | "secondary" | "danger" | "muted" {
   if (status === "cashed_out") return "default";
   if (status === "accepted" || status === "pending") return "secondary";
   if (status === "lost" || status === "rejected") return "danger";

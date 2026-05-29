@@ -12,7 +12,8 @@ export function WalletSummary({
   readonly loading: boolean;
 }) {
   return (
-    <Card>
+    <Card className="relative overflow-hidden">
+      <div className="pointer-events-none absolute right-0 top-0 h-24 w-28 bg-primary/[0.18] blur-3xl" />
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-sm">
           <WalletCards className="h-4 w-4 text-primary" />

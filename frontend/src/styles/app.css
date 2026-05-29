@@ -5,26 +5,27 @@
 
 :root {
   color-scheme: dark;
-  --background: 222 47% 5%;
-  --foreground: 210 40% 98%;
-  --card: 222 38% 8%;
+  --background: 80 26% 3%;
+  --foreground: 84 22% 96%;
+  --card: 90 18% 5%;
   --card-foreground: 210 40% 98%;
-  --popover: 222 38% 8%;
+  --popover: 90 18% 5%;
   --popover-foreground: 210 40% 98%;
-  --primary: 166 84% 52%;
-  --primary-foreground: 222 47% 5%;
-  --secondary: 262 83% 68%;
-  --secondary-foreground: 210 40% 98%;
-  --muted: 221 28% 14%;
-  --muted-foreground: 215 20% 72%;
-  --accent: 338 91% 62%;
+  --primary: 77 100% 52%;
+  --primary-foreground: 84 38% 5%;
+  --secondary: 84 16% 18%;
+  --secondary-foreground: 84 26% 92%;
+  --muted: 90 11% 12%;
+  --muted-foreground: 82 8% 70%;
+  --accent: 4 88% 65%;
   --accent-foreground: 210 40% 98%;
-  --destructive: 0 84% 60%;
+  --destructive: 0 83% 60%;
   --destructive-foreground: 210 40% 98%;
-  --border: 217 24% 22%;
-  --input: 217 24% 18%;
-  --ring: 166 84% 52%;
+  --border: 83 13% 19%;
+  --input: 90 12% 12%;
+  --ring: 77 100% 52%;
   --radius: 0.5rem;
+  --brand-background-image: url("/brand/crash-background.png");
 }
 
 @theme inline {
@@ -64,14 +65,37 @@ body,
 
 body {
   margin: 0;
-  background:
-    radial-gradient(circle at 20% 0%, rgb(20 184 166 / 0.18), transparent 34rem),
-    radial-gradient(circle at 80% 12%, rgb(244 63 94 / 0.14), transparent 30rem),
-    linear-gradient(135deg, #050816 0%, #090f1d 45%, #0d1224 100%);
+  overflow-x: hidden;
+  background: #020400;
   color: hsl(var(--foreground));
   font-family:
-    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Oxanium,
+    Rajdhani,
+    Inter,
+    ui-sans-serif,
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
     sans-serif;
+}
+
+body::before {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  background-image: url("/background.png");
+  background-position: center;
+  background-size: cover;
+  content: "";
+}
+
+body::after {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+
+  content: "";
 }
 
 button,
@@ -80,16 +104,136 @@ input {
 }
 
 .casino-grid {
-  background-image:
-    linear-gradient(rgb(255 255 255 / 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(255 255 255 / 0.04) 1px, transparent 1px);
-  background-size: 34px 34px;
+  position: relative;
+  isolation: isolate;
+}
+
+.casino-grid::before {
+  position: fixed;
+  inset: auto -12vw 0 -12vw;
+  z-index: -1;
+  height: 28vh;
+  pointer-events: none;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(186 255 0 / 0.22),
+    transparent
+  );
+  filter: blur(34px);
+  transform: skewY(-4deg);
+  content: "";
 }
 
 .neon-text {
-  text-shadow: 0 0 24px rgb(45 212 191 / 0.42);
+  text-shadow: 0 0 24px rgb(186 255 0 / 0.42);
 }
 
-.crash-line {
-  filter: drop-shadow(0 0 14px rgb(45 212 191 / 0.75));
+.crash-canvas {
+  border-radius: inherit;
+}
+
+.glass-card {
+  border: 1px solid rgb(255 255 255 / 0.11);
+  background:
+    linear-gradient(145deg, rgb(255 255 255 / 0.055), transparent 34%),
+    rgb(5 7 5 / 0.78);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 22px 72px rgb(0 0 0 / 0.38);
+  backdrop-filter: blur(22px);
+}
+
+.chart-shell {
+  background:
+    linear-gradient(180deg, rgb(186 255 0 / 0.035), transparent 30%),
+    rgb(4 7 5 / 0.88);
+}
+
+.top-hud {
+  border: 1px solid rgb(255 255 255 / 0.13);
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 0.06), transparent),
+    rgb(7 9 7 / 0.78);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.08),
+    0 16px 50px rgb(0 0 0 / 0.38);
+  backdrop-filter: blur(24px);
+}
+
+.hud-segment {
+  min-width: 0;
+  border-left: 1px solid rgb(255 255 255 / 0.1);
+}
+
+.side-rail {
+  position: fixed;
+  top: 1.25rem;
+  bottom: 1.25rem;
+  left: 1.25rem;
+  z-index: 10;
+  display: none;
+  width: 7.25rem;
+  pointer-events: none;
+}
+
+.side-rail::before {
+  position: absolute;
+  top: 50%;
+  bottom: 7rem;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(180deg, rgb(186 255 0), transparent);
+  box-shadow: 0 0 18px rgb(186 255 0 / 0.7);
+  content: "";
+}
+
+.side-rail-word {
+  position: absolute;
+  top: 31%;
+  left: 50%;
+  color: rgb(255 255 255 / 0.8);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.56rem;
+  text-transform: uppercase;
+  transform: translateX(-50%) rotate(90deg);
+  transform-origin: center;
+}
+
+.side-rail-copy {
+  position: absolute;
+  bottom: 0;
+  left: 0.2rem;
+  color: rgb(255 255 255 / 0.62);
+  font-size: 0.64rem;
+  font-weight: 700;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.neon-pill {
+  box-shadow:
+    0 0 0 1px rgb(186 255 0 / 0.22),
+    0 0 26px rgb(186 255 0 / 0.18);
+}
+
+.data-row {
+  background: linear-gradient(
+    180deg,
+    rgb(255 255 255 / 0.035),
+    rgb(255 255 255 / 0.012)
+  );
+}
+
+@media (min-width: 1280px) {
+  .side-rail {
+    display: block;
+  }
+}
+
+@media (max-width: 640px) {
+  body::after {
+    background-size: 52px 52px;
+  }
 }

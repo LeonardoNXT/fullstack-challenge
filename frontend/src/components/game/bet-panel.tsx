@@ -125,17 +125,17 @@ export function BetPanel({
         </div>
 
         <div className="grid grid-cols-2 gap-2 text-sm">
-          <div className="rounded-md border bg-muted/35 p-3">
+          <div className="data-row rounded-md border border-white/10 p-3">
             <p className="text-xs text-muted-foreground">Payout atual</p>
             <p className="font-semibold">{formatCents(projected)}</p>
           </div>
-          <div className="rounded-md border bg-muted/35 p-3">
+          <div className="data-row rounded-md border border-white/10 p-3">
             <p className="text-xs text-muted-foreground">Alvo automatico</p>
             <p className="font-semibold">{formatMultiplier(autoCashoutBps)}</p>
           </div>
         </div>
 
-        <label className="flex items-center justify-between gap-3 rounded-md border bg-muted/25 p-3 text-sm">
+        <label className="data-row flex items-center justify-between gap-3 rounded-md border border-white/10 p-3 text-sm">
           <span>
             <span className="block font-medium">Auto bet</span>
             <span className="text-xs text-muted-foreground">
@@ -143,7 +143,7 @@ export function BetPanel({
             </span>
           </span>
           <input
-            className="h-5 w-5 accent-teal-300"
+            className="h-5 w-5 accent-primary"
             type="checkbox"
             checked={autoBet}
             onChange={(event) => setAutoBet(event.target.checked)}

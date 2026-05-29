@@ -24,7 +24,7 @@ export function LeaderboardPanel() {
             <Trophy className="h-5 w-5 text-primary" />
             Leaderboard
           </CardTitle>
-          <div className="flex rounded-md border bg-muted/30 p-1">
+          <div className="flex rounded-full border border-white/10 bg-black/30 p-1">
             <Button
               size="sm"
               variant={window === "24h" ? "default" : "ghost"}
@@ -53,7 +53,7 @@ export function LeaderboardPanel() {
           leaderboard.data?.map((entry, index) => (
             <div
               key={entry.playerId}
-              className="flex items-center justify-between gap-3 rounded-md border bg-muted/25 p-3"
+              className="data-row flex items-center justify-between gap-3 rounded-md border border-white/10 p-3"
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-semibold">
